@@ -1,14 +1,11 @@
 package com4table.ssupetition.domain.post.domain;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
+import com4table.ssupetition.domain.user.domain.User;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.Id;
 
 @Entity
 @Builder
@@ -21,7 +18,9 @@ public class PostAnswer {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long postAnswerId;
 
-    //게시글 식별자
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "postId")
+    private Post postId;
 
     private String postAnswerContent;
 

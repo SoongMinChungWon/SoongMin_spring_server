@@ -1,24 +1,19 @@
-package com4table.ssupetition.domain.comment.domain;
+package com4table.ssupetition.domain.mypage.domain;
 
-import com4table.ssupetition.domain.base_time.BaseTimeEntity;
 import com4table.ssupetition.domain.post.domain.Post;
 import com4table.ssupetition.domain.user.domain.User;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
-@Builder
 @Getter
-@NoArgsConstructor
+@Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-public class Comment extends BaseTimeEntity {
-
+public class AgreePost {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long commentId;
+    private Long agreePostId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "userId")
@@ -27,7 +22,5 @@ public class Comment extends BaseTimeEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "postId")
     private Post postId;
-
-    private String commentContent;
 
 }

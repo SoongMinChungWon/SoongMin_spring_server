@@ -1,13 +1,12 @@
 package com4table.ssupetition.domain.post.domain;
 
 import com4table.ssupetition.domain.base_time.BaseTimeEntity;
+import com4table.ssupetition.domain.user.domain.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.apache.catalina.User;
-import org.springframework.data.annotation.Id;
 
 import java.util.List;
 
@@ -23,8 +22,22 @@ public class Post extends BaseTimeEntity {
     @Column(name = "post_id")
     private Long postId;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "userId")
+    private User userId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "postCategoryId")
+    private PostCategory postCategoryId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "postTypeId")
+    private PostType postTypeId;
+
+    @Column(nullable = false)
     private String title;
 
+    @Column(nullable = false)
     private String content;
 
     private Long participants;
@@ -34,4 +47,7 @@ public class Post extends BaseTimeEntity {
     private Long disagree;
 
     private List<Double> embedding;
+
+
+
 }
