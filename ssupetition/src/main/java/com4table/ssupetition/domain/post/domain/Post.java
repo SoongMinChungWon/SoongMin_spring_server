@@ -1,6 +1,8 @@
 package com4table.ssupetition.domain.post.domain;
 
 import com4table.ssupetition.domain.base_time.BaseTimeEntity;
+import com4table.ssupetition.domain.post.enums.Category;
+import com4table.ssupetition.domain.post.enums.Type;
 import com4table.ssupetition.domain.user.domain.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -23,16 +25,16 @@ public class Post extends BaseTimeEntity {
     private Long postId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "userId")
-    private User userId;
+    @JoinColumn(name = "user_id")
+    private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "postCategoryId")
-    private PostCategory postCategoryId;
+    @JoinColumn(name = "post_category_id")
+    private PostCategory postCategory;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "postTypeId")
-    private PostType postTypeId;
+    @JoinColumn(name = "post_type_id")
+    private PostType postType;
 
     @Column(nullable = false)
     private String title;
@@ -46,8 +48,16 @@ public class Post extends BaseTimeEntity {
 
     private Long disagree;
 
+    @ElementCollection
+    @CollectionTable(name = "embedding_values", joinColumns = @JoinColumn(name = "post_id"))
+    @Column(name = "value")
     private List<Double> embedding;
 
+    public void setAgree(Long agree) {
+        this.agree = agree;
+    }
 
-
+    public void setDisagree(Long disagree) {
+        this.disagree = disagree;
+    }
 }
