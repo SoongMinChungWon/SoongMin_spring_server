@@ -1,4 +1,7 @@
 package com4table.ssupetition.domain.post.repository;
 
-public class PostAnswerRepository {
+import com4table.ssupetition.domain.post.domain.PostAnswer;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface PostAnswerRepository extends JpaRepository<PostAnswer, Long> {
 }
