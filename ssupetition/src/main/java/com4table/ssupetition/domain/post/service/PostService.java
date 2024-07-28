@@ -1,10 +1,13 @@
 package com4table.ssupetition.domain.post.service;
 
-import com4table.ssupetition.domain.post.controller.PostController;
+import com4table.ssupetition.domain.mypage.domain.AgreePost;
+import com4table.ssupetition.domain.mypage.repository.AgreePostRepository;
 import com4table.ssupetition.domain.post.domain.Post;
 import com4table.ssupetition.domain.post.domain.PostCategory;
 import com4table.ssupetition.domain.post.domain.PostType;
 import com4table.ssupetition.domain.post.dto.PostRequest;
+import com4table.ssupetition.domain.post.dto.PostResponse;
+import com4table.ssupetition.domain.post.repository.EmbeddingValueRepository;
 import com4table.ssupetition.domain.post.repository.PostCategoryRepository;
 import com4table.ssupetition.domain.post.repository.PostRepository;
 import com4table.ssupetition.domain.post.repository.PostTypeRepository;
@@ -14,8 +17,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -26,6 +31,8 @@ public class PostService {
     private final PostCategoryRepository postCategoryRepository;
     private  final PostTypeRepository postTypeRepository;
     private final UserRepository userRepository;
+    private final EmbeddingValueRepository embeddingValueRepository;
+    private final AgreePostRepository agreePostRepository;
 
     public Post addPost(Long userId, PostRequest.AddDTO addDTO) {
         User user = userRepository.findById(userId)
@@ -35,36 +42,178 @@ public class PostService {
         PostType postType = postTypeRepository.findById(addDTO.getTypeId())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid type ID: " + addDTO.getTypeId()));
 
-        Post post = addDTO.toEntity(user, postCategory, postType);
+        List<Double> embedding = new ArrayList<>();
+        embedding.add((double) 0.1);
+        embedding.add((double) 0.2);
+        embedding.add((double) 0.3);
+
+        Post post = addDTO.toEntity(user, postCategory, postType, embedding);
         return postRepository.save(post);
     }
-    public void removePost(Long postId) {
+    public void removePost(Long postId, Long userId) {
+        embeddingValueRepository.deleteByPost_PostId(postId); // embedding_values 테이블에서 삭제
         postRepository.deleteById(postId);
     }
 
-    public void addPostAgree(Long postId) {
+    public Post addPostAgree(Long postId,Long userId) {
         Post post = postRepository.findById(postId).orElseThrow(() -> new RuntimeException("Post not found"));
+        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+
+        if(checkParticipate(postId, userId, post, user, false)){
+            return null;
+        }
         post.setAgree(post.getAgree() + 1);
-        postRepository.save(post);
+        post.setParticipants(post.getParticipants()+1);
+        return postRepository.save(post);
     }
 
-    public void addPostDisagree(Long postId) {
+    public Post addPostDisagree(Long postId,Long userId) {
         Post post = postRepository.findById(postId).orElseThrow(() -> new RuntimeException("Post not found"));
+        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+
+        if(checkParticipate(postId, userId, post, user, false)){
+            return null;
+        }
         post.setDisagree(post.getDisagree() + 1);
-        postRepository.save(post);
+        post.setParticipants(post.getParticipants()+1);
+        return postRepository.save(post);
     }
 
-    public List<Post> getPostList() {
-        return postRepository.findAll();
+    private boolean checkParticipate(Long postId, Long userId, Post post, User user, boolean state) {
+        Optional<AgreePost> existingLike = agreePostRepository.findByPost_PostIdAndUser_UserId(postId, userId);
+
+        if (existingLike.isPresent()) {
+            return true;
+        }
+
+        AgreePost postLike = AgreePost.builder()
+                .post(post)
+                .user(user)
+                .state(state)
+                .build();
+        agreePostRepository.save(postLike);
+
+        return false;
     }
 
-//    public List<Post> getPostListWithCategory(Long categoryId) {
-//        return postRepository.findByPostCategoryId(categoryId);
-//    }
-//
-//    public List<Post> getPostListWithPostType(Long typeId) {
-//        return postRepository.findByPostTypeId(typeId);
-//    }
+    public List<PostResponse.AllListDTO> getAllPosts() {
+        List<Post> posts = postRepository.findAll();
+        return posts.stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+
+    public List<PostResponse.AllListDTO> getAllPostsSortedByAgree() {
+        List<Post> posts = postRepository.findAllOrderByAgreeDesc();
+        return posts.stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+
+    public List<PostResponse.AllListDTO> getAllPostsSortedByExpiry() {
+        List<Post> posts = postRepository.findAllOrderByExpiryAsc();
+        return posts.stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+
+    public List<PostResponse.AllListDTO> getAllPostsSortedByCreatedDate() {
+        List<Post> posts = postRepository.findAllOrderByCreatedDateDesc();
+        return posts.stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+
+    public List<PostResponse.AllListDTO> getAllPostsSortedByAgree(String category, String type) {
+        PostCategory postCategory = null;
+        PostType postType = null;
+
+        if (category != null && !category.isEmpty()) {
+            postCategory = postCategoryRepository.findByPostCategoryName(category).orElse(null);
+        }
+
+        if (type != null && !type.isEmpty()) {
+            postType = postTypeRepository.findByPostTypeName(type).orElse(null);
+        }
+
+        List<Post> posts;
+        if (postCategory == null && postType == null) {
+            posts = postRepository.findAllOrderByAgreeDesc();
+        } else {
+            posts = postRepository.findAllByCategoryAndTypeOrderByAgreeDesc(postCategory, postType);
+        }
+
+        return posts.stream()
+                .map(post -> new PostResponse.AllListDTO().toEntity(post, post.getUser(), post.getPostCategory(), post.getPostType()))
+                .collect(Collectors.toList());
+    }
+
+    public List<PostResponse.AllListDTO> getAllPostsSortedByExpiry(String category, String type) {
+        PostCategory postCategory = null;
+        PostType postType = null;
+
+        if (category != null && !category.isEmpty()) {
+            postCategory = postCategoryRepository.findByPostCategoryName(category).orElse(null);
+        }
+
+        if (type != null && !type.isEmpty()) {
+            postType = postTypeRepository.findByPostTypeName(type).orElse(null);
+        }
+
+        List<Post> posts;
+        if (postCategory == null && postType == null) {
+            posts = postRepository.findAllOrderByExpiryAsc();
+        } else {
+            posts = postRepository.findAllByCategoryAndTypeOrderByExpiryAsc(postCategory, postType);
+        }
+
+        return posts.stream()
+                .map(post -> new PostResponse.AllListDTO().toEntity(post, post.getUser(), post.getPostCategory(), post.getPostType()))
+                .collect(Collectors.toList());
+    }
+
+    public List<PostResponse.AllListDTO> getAllPostsSortedByCreatedDate(String category, String type) {
+        PostCategory postCategory = null;
+        PostType postType = null;
+
+        if (category != null && !category.isEmpty()) {
+            postCategory = postCategoryRepository.findByPostCategoryName(category).orElse(null);
+        }
+
+        if (type != null && !type.isEmpty()) {
+            postType = postTypeRepository.findByPostTypeName(type).orElse(null);
+        }
+
+        List<Post> posts;
+        if (postCategory == null && postType == null) {
+            posts = postRepository.findAllOrderByCreatedDateDesc();
+        } else {
+            posts = postRepository.findAllByCategoryAndTypeOrderByCreatedDateDesc(postCategory, postType);
+        }
+
+        return posts.stream()
+                .map(post -> new PostResponse.AllListDTO().toEntity(post, post.getUser(), post.getPostCategory(), post.getPostType()))
+                .collect(Collectors.toList());
+    }
+
+    private PostResponse.AllListDTO convertToDto(Post post) {
+        User user = userRepository.findById(post.getUser().getUserId()).orElseThrow();
+        PostCategory postCategory = postCategoryRepository.findById(post.getPostCategory().getPostCategoryId()).orElseThrow();
+        PostType postType = postTypeRepository.findById(post.getPostType().getPostTypeId()).orElseThrow();
+
+        return PostResponse.AllListDTO.builder()
+                .postId(post.getPostId())
+                .userId(user.getUserId())
+                .postCategory(postCategory.getPostCategoryName())
+                .postType(postType.getPostTypeName())
+                .title(post.getTitle())
+                .content(post.getContent())
+                .participants(post.getParticipants())
+                .agree(post.getAgree())
+                .disagree(post.getDisagree())
+                .embedding(post.getEmbedding())
+                .build();
+    }
 
     //최다동의순
     //만료임박순

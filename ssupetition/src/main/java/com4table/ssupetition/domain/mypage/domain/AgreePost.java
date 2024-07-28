@@ -17,10 +17,12 @@ public class AgreePost {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "userId")
-    private User userId;
+    private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "postId")
-    private Post postId;
+    private Post post;
+
+    private boolean state;
 
 }

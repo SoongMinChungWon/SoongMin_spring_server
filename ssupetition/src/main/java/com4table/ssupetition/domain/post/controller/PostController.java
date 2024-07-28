@@ -2,6 +2,7 @@ package com4table.ssupetition.domain.post.controller;
 
 import com4table.ssupetition.domain.post.domain.Post;
 import com4table.ssupetition.domain.post.dto.PostRequest;
+import com4table.ssupetition.domain.post.dto.PostResponse;
 import com4table.ssupetition.domain.post.service.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -21,39 +22,58 @@ public class PostController {
         Post createdPost = postService.addPost(userId, addDTO);
         return ResponseEntity.ok(createdPost);
     }
-    @DeleteMapping("/{postId}")
-    public ResponseEntity<Void> removePost(@PathVariable Long postId) {
-        postService.removePost(postId);
+    @DeleteMapping("/{postId}/{userId}")
+    public ResponseEntity<Void> removePost(@PathVariable(name="postId") Long postId, @PathVariable(name="userId")Long userId) {
+        postService.removePost(postId, userId);
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{postId}/agree")
-    public ResponseEntity<Void> addPostAgree(@PathVariable Long postId) {
-        postService.addPostAgree(postId);
+    @PostMapping("/{postId}/agree/{userId}")
+    public ResponseEntity<Void> addPostAgree(@PathVariable(name = "postId") Long postId, @PathVariable(name = "userId") Long userId) {
+        postService.addPostAgree(postId, userId);
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/{postId}/disagree")
-    public ResponseEntity<Void> addPostDisagree(@PathVariable Long postId) {
-        postService.addPostDisagree(postId);
+    @PostMapping("/{postId}/disagree/{userId}")
+    public ResponseEntity<Void> addPostDisagree(@PathVariable(name = "postId") Long postId, @PathVariable(name = "userId") Long userId) {
+        postService.addPostDisagree(postId, userId);
+
         return ResponseEntity.ok().build();
     }
 
     @GetMapping
-    public ResponseEntity<List<Post>> getPostList() {
-        List<Post> posts = postService.getPostList();
-        return ResponseEntity.ok(posts);
+    public List<PostResponse.AllListDTO> getPostList() {
+        return postService.getAllPosts();
     }
 
-//    @GetMapping("/category/{categoryId}")
-//    public ResponseEntity<List<Post>> getPostListWithCategory(@PathVariable Long categoryId) {
-//        List<Post> posts = postService.getPostListWithCategory(categoryId);
-//        return ResponseEntity.ok(posts);
-//    }
-//
-//    @GetMapping("/type/{typeId}")
-//    public ResponseEntity<List<Post>> getPostListWithPostType(@PathVariable Long typeId) {
-//        List<Post> posts = postService.getPostListWithPostType(typeId);
-//        return ResponseEntity.ok(posts);
-//    }
+    @GetMapping("/sorted/agree")
+    public List<PostResponse.AllListDTO> getAllPostsSortedByAgree() {
+        return postService.getAllPostsSortedByAgree();
+    }
+
+    @GetMapping("/sorted/agree/{category}/{type}")
+    public List<PostResponse.AllListDTO> getAllPostsSortedByAgree(@PathVariable(name = "category") String category, @PathVariable(name = "type") String type) {
+        return postService.getAllPostsSortedByAgree(category, type);
+    }
+
+
+    @GetMapping("/sorted/expiry")
+    public List<PostResponse.AllListDTO> getAllPostsSortedByExpiry() {
+        return postService.getAllPostsSortedByExpiry();
+    }
+    @GetMapping("/sorted/expiry/{category}/{type}")
+    public List<PostResponse.AllListDTO> getAllPostsSortedByExpiry(@PathVariable(name = "category") String category, @PathVariable(name = "type") String type) {
+        return postService.getAllPostsSortedByExpiry(category, type);
+    }
+
+    @GetMapping("/sorted/createdDate")
+    public List<PostResponse.AllListDTO> getAllPostsSortedByCreatedDate() {
+        return postService.getAllPostsSortedByCreatedDate();
+    }
+
+    @GetMapping("/sorted/createdDate/{category}/{type}")
+    public List<PostResponse.AllListDTO> getAllPostsSortedByCreatedDate(@PathVariable(name = "category") String category, @PathVariable(name = "type") String type) {
+        return postService.getAllPostsSortedByCreatedDate(category, type);
+    }
+
 }

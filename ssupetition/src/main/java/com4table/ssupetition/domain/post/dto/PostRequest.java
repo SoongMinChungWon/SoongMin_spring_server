@@ -27,9 +27,8 @@ public class PostRequest {
         private String content;
         private Long categoryId;
         private Long typeId;
-        private List<Double> embedding;
 
-        public Post toEntity(User user, PostCategory postCategory, PostType postType) {
+        public Post toEntity(User user, PostCategory postCategory, PostType postType, List<Double> embedding) {
             return Post.builder()
                     .user(user)
                     .postCategory(postCategory)

@@ -48,10 +48,10 @@ public class Post extends BaseTimeEntity {
 
     private Long disagree;
 
-    @ElementCollection
-    @CollectionTable(name = "embedding_values", joinColumns = @JoinColumn(name = "post_id"))
-    @Column(name = "value")
     private List<Double> embedding;
+    public void setParticipants(Long participants) {
+        this.participants = participants;
+    }
 
     public void setAgree(Long agree) {
         this.agree = agree;
