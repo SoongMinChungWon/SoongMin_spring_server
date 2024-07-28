@@ -17,5 +17,4 @@ public class CommentResponse {
     private Long postId;
     private String commentContent;
     private LocalDateTime createdDate;
-    private LocalDateTime modifiedDate;
 }

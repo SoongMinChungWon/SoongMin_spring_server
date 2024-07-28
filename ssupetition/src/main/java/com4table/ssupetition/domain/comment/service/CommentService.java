@@ -39,7 +39,9 @@ public class CommentService {
     }
 
     public List<CommentResponse> getCommentsByPost(Long postId) {
-        List<Comment> comments = commentRepository.findByPostId(postId);
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid post ID: " + postId));
+        List<Comment> comments = commentRepository.findByPostId(post);
         return comments.stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());

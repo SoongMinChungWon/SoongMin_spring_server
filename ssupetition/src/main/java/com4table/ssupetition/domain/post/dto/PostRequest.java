@@ -18,16 +18,16 @@ public class PostRequest {
     public static class AddDTO {
         private String title;
         private String content;
-        private Long categoryId;
-        private Long typeId;
-        private Category category;
-        private Type type;
+        private String categoryId;
+        private String typeId;
+//        private Category category;
+//        private Type type;
 
         public Post toEntity(User user, List<Double> embedding) {
             return Post.builder()
                     .user(user)
-                    .postCategory(category)
-                    .postType(type)
+                    .postCategory(Category.valueOf(categoryId))
+                    .postType(Type.valueOf(typeId))
                     .participants(0L)
                     .agree(0L)
                     .disagree(0L)

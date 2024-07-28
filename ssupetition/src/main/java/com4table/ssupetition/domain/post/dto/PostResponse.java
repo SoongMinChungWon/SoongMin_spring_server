@@ -8,6 +8,7 @@ import lombok.*;
 
 import java.util.List;
 
+@NoArgsConstructor
 public class PostResponse {
     @Getter
     @Builder
@@ -23,23 +24,9 @@ public class PostResponse {
         private Long participants;
         private Long agree;
         private Long disagree;
-        private List<Double> embedding;
-
-        public PostResponse.AllListDTO toEntity(Post post, User user) {
-            return AllListDTO.builder()
-                    .postId(post.getPostId())
-                    .userId(user.getUserId())
-                    .postCategory(postCategory)
-                    .postType(postType)
-                    .title(post.getTitle())
-                    .content(post.getContent())
-                    .participants(post.getParticipants())
-                    .agree(post.getAgree())
-                    .disagree(post.getDisagree())
-                    .embedding(post.getEmbedding())
-                    .build();
 
 
+        public AllListDTO(Post post) {
         }
     }
 }

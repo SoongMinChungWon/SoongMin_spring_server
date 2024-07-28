@@ -11,26 +11,26 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/comments")
+@RequestMapping("/api/comments")
 @RequiredArgsConstructor
 public class CommentController {
 
     private final CommentService commentService;
 
-    @PostMapping("/add")
-    public Comment addComment(@RequestParam Long userId, @RequestParam Long postId, @RequestBody CommentRequest.AddDTO addDTO) {
+    @PostMapping("/add/{postId}/{userId}")
+    public Comment addComment(@PathVariable(name = "userId") Long userId, @PathVariable(name = "postId") Long postId, @RequestBody CommentRequest.AddDTO addDTO) {
         Comment commentResponse = commentService.addComment(userId, postId, addDTO);
         return commentResponse;
     }
 
     @DeleteMapping("/delete/{commentId}")
-    public ResponseEntity<Void> removeComment(@PathVariable Long commentId) {
+    public ResponseEntity<Void> removeComment(@PathVariable(name = "commentId") Long commentId) {
         commentService.removeComment(commentId);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/post/{postId}")
-    public ResponseEntity<List<CommentResponse>> getCommentsByPost(@PathVariable Long postId) {
+    public ResponseEntity<List<CommentResponse>> getCommentsByPost(@PathVariable(name = "postId")Long postId) {
         List<CommentResponse> comments = commentService.getCommentsByPost(postId);
         return ResponseEntity.ok(comments);
     }
