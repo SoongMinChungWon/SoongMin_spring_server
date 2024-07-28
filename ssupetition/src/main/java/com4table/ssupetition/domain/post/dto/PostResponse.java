@@ -1,14 +1,9 @@
 package com4table.ssupetition.domain.post.dto;
 
 import com4table.ssupetition.domain.post.domain.Post;
-import com4table.ssupetition.domain.post.domain.PostCategory;
-import com4table.ssupetition.domain.post.domain.PostType;
 import com4table.ssupetition.domain.post.enums.Category;
 import com4table.ssupetition.domain.post.enums.Type;
 import com4table.ssupetition.domain.user.domain.User;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import lombok.*;
 
 import java.util.List;
@@ -30,12 +25,12 @@ public class PostResponse {
         private Long disagree;
         private List<Double> embedding;
 
-        public PostResponse.AllListDTO toEntity(Post post, User user, PostCategory postCategory, PostType postType) {
+        public PostResponse.AllListDTO toEntity(Post post, User user) {
             return AllListDTO.builder()
                     .postId(post.getPostId())
                     .userId(user.getUserId())
-                    .postCategory(postCategory.getPostCategoryName())
-                    .postType(postType.getPostTypeName())
+                    .postCategory(postCategory)
+                    .postType(postType)
                     .title(post.getTitle())
                     .content(post.getContent())
                     .participants(post.getParticipants())

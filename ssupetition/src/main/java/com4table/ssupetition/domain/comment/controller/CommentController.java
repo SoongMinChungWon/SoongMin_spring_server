@@ -1,11 +1,37 @@
 package com4table.ssupetition.domain.comment.controller;
 
+import com4table.ssupetition.domain.comment.domain.Comment;
+import com4table.ssupetition.domain.comment.dto.CommentRequest;
+import com4table.ssupetition.domain.comment.dto.CommentResponse;
+import com4table.ssupetition.domain.comment.service.CommentService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
+@RequestMapping("/comments")
 @RequiredArgsConstructor
-@RequestMapping("api/3")
 public class CommentController {
+
+    private final CommentService commentService;
+
+    @PostMapping("/add")
+    public Comment addComment(@RequestParam Long userId, @RequestParam Long postId, @RequestBody CommentRequest.AddDTO addDTO) {
+        Comment commentResponse = commentService.addComment(userId, postId, addDTO);
+        return commentResponse;
+    }
+
+    @DeleteMapping("/delete/{commentId}")
+    public ResponseEntity<Void> removeComment(@PathVariable Long commentId) {
+        commentService.removeComment(commentId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/post/{postId}")
+    public ResponseEntity<List<CommentResponse>> getCommentsByPost(@PathVariable Long postId) {
+        List<CommentResponse> comments = commentService.getCommentsByPost(postId);
+        return ResponseEntity.ok(comments);
+    }
 }

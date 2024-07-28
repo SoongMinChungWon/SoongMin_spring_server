@@ -28,13 +28,9 @@ public class Post extends BaseTimeEntity {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "post_category_id")
-    private PostCategory postCategory;
+    private Category postCategory;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "post_type_id")
-    private PostType postType;
+    private Type postType;
 
     @Column(nullable = false)
     private String title;

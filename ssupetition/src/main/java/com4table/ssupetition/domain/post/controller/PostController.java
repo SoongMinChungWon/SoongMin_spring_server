@@ -51,29 +51,29 @@ public class PostController {
         return postService.getAllPostsSortedByAgree();
     }
 
-    @GetMapping("/sorted/agree/{category}/{type}")
-    public List<PostResponse.AllListDTO> getAllPostsSortedByAgree(@PathVariable(name = "category") String category, @PathVariable(name = "type") String type) {
-        return postService.getAllPostsSortedByAgree(category, type);
-    }
+//    @GetMapping("/sorted/agree/{category}/{type}")
+//    public List<PostResponse.AllListDTO> getAllPostsSortedByAgree(@PathVariable(name = "category") String category, @PathVariable(name = "type") String type) {
+//        return postService.getAllPostsSortedByAgree(category, type);
+//    }
 
 
     @GetMapping("/sorted/expiry")
     public List<PostResponse.AllListDTO> getAllPostsSortedByExpiry() {
         return postService.getAllPostsSortedByExpiry();
     }
-    @GetMapping("/sorted/expiry/{category}/{type}")
-    public List<PostResponse.AllListDTO> getAllPostsSortedByExpiry(@PathVariable(name = "category") String category, @PathVariable(name = "type") String type) {
-        return postService.getAllPostsSortedByExpiry(category, type);
-    }
+//    @GetMapping("/sorted/expiry/{category}/{type}")
+//    public List<PostResponse.AllListDTO> getAllPostsSortedByExpiry(@PathVariable(name = "category") String category, @PathVariable(name = "type") String type) {
+//        return postService.getAllPostsSortedByExpiry(category, type);
+//    }
 
     @GetMapping("/sorted/createdDate")
     public List<PostResponse.AllListDTO> getAllPostsSortedByCreatedDate() {
         return postService.getAllPostsSortedByCreatedDate();
     }
 
-    @GetMapping("/sorted/createdDate/{category}/{type}")
-    public List<PostResponse.AllListDTO> getAllPostsSortedByCreatedDate(@PathVariable(name = "category") String category, @PathVariable(name = "type") String type) {
-        return postService.getAllPostsSortedByCreatedDate(category, type);
-    }
+//    @GetMapping("/sorted/createdDate/{category}/{type}")
+//    public List<PostResponse.AllListDTO> getAllPostsSortedByCreatedDate(@PathVariable(name = "category") String category, @PathVariable(name = "type") String type) {
+//        return postService.getAllPostsSortedByCreatedDate(category, type);
+//    }
 
 }

@@ -3,14 +3,10 @@ package com4table.ssupetition.domain.post.service;
 import com4table.ssupetition.domain.mypage.domain.AgreePost;
 import com4table.ssupetition.domain.mypage.repository.AgreePostRepository;
 import com4table.ssupetition.domain.post.domain.Post;
-import com4table.ssupetition.domain.post.domain.PostCategory;
-import com4table.ssupetition.domain.post.domain.PostType;
 import com4table.ssupetition.domain.post.dto.PostRequest;
 import com4table.ssupetition.domain.post.dto.PostResponse;
 import com4table.ssupetition.domain.post.repository.EmbeddingValueRepository;
-import com4table.ssupetition.domain.post.repository.PostCategoryRepository;
 import com4table.ssupetition.domain.post.repository.PostRepository;
-import com4table.ssupetition.domain.post.repository.PostTypeRepository;
 import com4table.ssupetition.domain.user.domain.User;
 import com4table.ssupetition.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -28,8 +24,7 @@ import java.util.stream.Collectors;
 public class PostService {
 
     private final PostRepository postRepository;
-    private final PostCategoryRepository postCategoryRepository;
-    private  final PostTypeRepository postTypeRepository;
+
     private final UserRepository userRepository;
     private final EmbeddingValueRepository embeddingValueRepository;
     private final AgreePostRepository agreePostRepository;
@@ -37,17 +32,13 @@ public class PostService {
     public Post addPost(Long userId, PostRequest.AddDTO addDTO) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid user ID: " + userId));
-        PostCategory postCategory = postCategoryRepository.findById(addDTO.getCategoryId())
-                .orElseThrow(() -> new IllegalArgumentException("Invalid category ID: " + addDTO.getCategoryId()));
-        PostType postType = postTypeRepository.findById(addDTO.getTypeId())
-                .orElseThrow(() -> new IllegalArgumentException("Invalid type ID: " + addDTO.getTypeId()));
 
         List<Double> embedding = new ArrayList<>();
         embedding.add((double) 0.1);
         embedding.add((double) 0.2);
         embedding.add((double) 0.3);
 
-        Post post = addDTO.toEntity(user, postCategory, postType, embedding);
+        Post post = addDTO.toEntity(user, embedding);
         return postRepository.save(post);
     }
     public void removePost(Long postId, Long userId) {
@@ -124,88 +115,14 @@ public class PostService {
                 .collect(Collectors.toList());
     }
 
-    public List<PostResponse.AllListDTO> getAllPostsSortedByAgree(String category, String type) {
-        PostCategory postCategory = null;
-        PostType postType = null;
-
-        if (category != null && !category.isEmpty()) {
-            postCategory = postCategoryRepository.findByPostCategoryName(category).orElse(null);
-        }
-
-        if (type != null && !type.isEmpty()) {
-            postType = postTypeRepository.findByPostTypeName(type).orElse(null);
-        }
-
-        List<Post> posts;
-        if (postCategory == null && postType == null) {
-            posts = postRepository.findAllOrderByAgreeDesc();
-        } else {
-            posts = postRepository.findAllByCategoryAndTypeOrderByAgreeDesc(postCategory, postType);
-        }
-
-        return posts.stream()
-                .map(post -> new PostResponse.AllListDTO().toEntity(post, post.getUser(), post.getPostCategory(), post.getPostType()))
-                .collect(Collectors.toList());
-    }
-
-    public List<PostResponse.AllListDTO> getAllPostsSortedByExpiry(String category, String type) {
-        PostCategory postCategory = null;
-        PostType postType = null;
-
-        if (category != null && !category.isEmpty()) {
-            postCategory = postCategoryRepository.findByPostCategoryName(category).orElse(null);
-        }
-
-        if (type != null && !type.isEmpty()) {
-            postType = postTypeRepository.findByPostTypeName(type).orElse(null);
-        }
-
-        List<Post> posts;
-        if (postCategory == null && postType == null) {
-            posts = postRepository.findAllOrderByExpiryAsc();
-        } else {
-            posts = postRepository.findAllByCategoryAndTypeOrderByExpiryAsc(postCategory, postType);
-        }
-
-        return posts.stream()
-                .map(post -> new PostResponse.AllListDTO().toEntity(post, post.getUser(), post.getPostCategory(), post.getPostType()))
-                .collect(Collectors.toList());
-    }
-
-    public List<PostResponse.AllListDTO> getAllPostsSortedByCreatedDate(String category, String type) {
-        PostCategory postCategory = null;
-        PostType postType = null;
-
-        if (category != null && !category.isEmpty()) {
-            postCategory = postCategoryRepository.findByPostCategoryName(category).orElse(null);
-        }
-
-        if (type != null && !type.isEmpty()) {
-            postType = postTypeRepository.findByPostTypeName(type).orElse(null);
-        }
-
-        List<Post> posts;
-        if (postCategory == null && postType == null) {
-            posts = postRepository.findAllOrderByCreatedDateDesc();
-        } else {
-            posts = postRepository.findAllByCategoryAndTypeOrderByCreatedDateDesc(postCategory, postType);
-        }
-
-        return posts.stream()
-                .map(post -> new PostResponse.AllListDTO().toEntity(post, post.getUser(), post.getPostCategory(), post.getPostType()))
-                .collect(Collectors.toList());
-    }
-
     private PostResponse.AllListDTO convertToDto(Post post) {
         User user = userRepository.findById(post.getUser().getUserId()).orElseThrow();
-        PostCategory postCategory = postCategoryRepository.findById(post.getPostCategory().getPostCategoryId()).orElseThrow();
-        PostType postType = postTypeRepository.findById(post.getPostType().getPostTypeId()).orElseThrow();
 
         return PostResponse.AllListDTO.builder()
                 .postId(post.getPostId())
                 .userId(user.getUserId())
-                .postCategory(postCategory.getPostCategoryName())
-                .postType(postType.getPostTypeName())
+                .postCategory(post.getPostCategory())
+                .postType(post.getPostType())
                 .title(post.getTitle())
                 .content(post.getContent())
                 .participants(post.getParticipants())
