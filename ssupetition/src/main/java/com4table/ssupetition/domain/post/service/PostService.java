@@ -57,14 +57,11 @@ public class PostService {
         Post post = postRepository.findById(postId).orElseThrow(() -> new RuntimeException("Post not found"));
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
 
-        checkAgreeCountAndSendEmail((float)post.getAgree()/post.getParticipants(), post.getAgree(), post.getTitle(), post.getContent());
-
-
         if(checkParticipate(postId, userId, post, user, false)){
             return null;
         }
 
-//        checkAgreeCountAndSendEmail((float)post.getAgree()/post.getParticipants(), post.getAgree(), post.getTitle(), post.getContent());
+        checkAgreeCountAndSendEmail((float)post.getAgree()/post.getParticipants(), post.getAgree(), post.getTitle(), post.getContent());
 
         post.setAgree(post.getAgree() + 1);
         post.setParticipants(post.getParticipants()+1);
@@ -101,12 +98,12 @@ public class PostService {
     }
 
     public void checkAgreeCountAndSendEmail(float agreeRate, long participate, String title, String content) {
-        //if (participate>10 && agreeRate >= 2) {
-            String to = "7dngur7@naver.com";
+        if (participate>10 && agreeRate >= 2) {
+            String to = "ssupetition@gmail.com";
             String subject = title;
             String text = "이 메일로 답신 부탁드립니다.\n" + content;
             emailService.sendSimpleMessage(to, subject, text);
-        //}
+        }
     }
 
     public List<PostResponse.AllListDTO> getAllPosts() {
@@ -177,11 +174,6 @@ public class PostService {
                 .disagree(post.getDisagree())
                 .build();
     }
-
-    //최다동의순
-    //만료임박순
-    //최신순
-    //알림 만들어야됨
 
 }
 

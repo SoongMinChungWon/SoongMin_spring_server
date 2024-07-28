@@ -29,4 +29,5 @@ public class PostResponse {
         public AllListDTO(Post post) {
         }
     }
+
 }
