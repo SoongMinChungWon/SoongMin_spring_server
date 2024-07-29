@@ -44,7 +44,9 @@ public class Post extends BaseTimeEntity {
 
     private Long disagree;
 
-    private List<Double> embedding;
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<EmbeddingValue> embedding;
+
     public void setParticipants(Long participants) {
         this.participants = participants;
     }
@@ -56,4 +58,9 @@ public class Post extends BaseTimeEntity {
     public void setDisagree(Long disagree) {
         this.disagree = disagree;
     }
+
+    public void setPostType(Type postType) {
+        this.postType = postType;
+    }
+
 }

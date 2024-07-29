@@ -24,10 +24,18 @@ public class PostResponse {
         private Long participants;
         private Long agree;
         private Long disagree;
-
+        private List<Double> embedding;
 
         public AllListDTO(Post post) {
+            this.postId = post.getPostId();
+            this.userId = post.getUser().getUserId();
+            this.postCategory = post.getPostCategory();
+            this.postType = post.getPostType();
+            this.title = post.getTitle();
+            this.content = post.getContent();
+            this.participants = post.getParticipants();
+            this.agree = post.getAgree();
+            this.disagree = post.getDisagree();
         }
     }
-
 }
