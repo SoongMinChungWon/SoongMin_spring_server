@@ -29,13 +29,13 @@ public class PostController {
     }
 
     @PostMapping("/{postId}/agree/{userId}")
-    public ResponseEntity<Void> addPostAgree(@PathVariable(name = "postId") Long postId, @PathVariable(name = "userId") Long userId) {
+    public ResponseEntity<Post> addPostAgree(@PathVariable(name = "postId") Long postId, @PathVariable(name = "userId") Long userId) {
         postService.addPostAgree(postId, userId);
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/{postId}/disagree/{userId}")
-    public ResponseEntity<Void> addPostDisagree(@PathVariable(name = "postId") Long postId, @PathVariable(name = "userId") Long userId) {
+    public ResponseEntity<Post> addPostDisagree(@PathVariable(name = "postId") Long postId, @PathVariable(name = "userId") Long userId) {
         postService.addPostDisagree(postId, userId);
 
         return ResponseEntity.ok().build();
