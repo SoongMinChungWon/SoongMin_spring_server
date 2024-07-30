@@ -2,7 +2,10 @@ package com4table.ssupetition.domain.post.service;
 
 import com4table.ssupetition.domain.mail.service.MailService;
 import com4table.ssupetition.domain.mypage.domain.AgreePost;
+import com4table.ssupetition.domain.mypage.domain.WritePost;
 import com4table.ssupetition.domain.mypage.repository.AgreePostRepository;
+import com4table.ssupetition.domain.mypage.repository.CommentPostRepository;
+import com4table.ssupetition.domain.mypage.repository.WritePostRepository;
 import com4table.ssupetition.domain.post.domain.EmbeddingValue;
 import com4table.ssupetition.domain.post.domain.Post;
 import com4table.ssupetition.domain.post.dto.PostRequest;
@@ -36,6 +39,8 @@ public class PostService {
     private final EmbeddingValueRepository embeddingValueRepository;
     private final AgreePostRepository agreePostRepository;
     private final MailService emailService;
+    private final WritePostRepository writePostRepository;
+    private final CommentPostRepository commentPostRepository;
 
 
     public Post addPost(Long userId, PostRequest.AddDTO addDTO) {
@@ -51,6 +56,12 @@ public class PostService {
         embeddings.add(new EmbeddingValue(null, post, 0.3));
 
         embeddingValueRepository.saveAll(embeddings);
+
+        WritePost writePost = WritePost.builder()
+                .user(user)
+                .post(savedPost)
+                .build();
+        writePostRepository.save(writePost);
 
         return savedPost;
     }
