@@ -23,6 +23,9 @@ public class LoginController {
     public ResponseEntity<User> login(@RequestBody LoginRequest.LoginDTO loginDTO) {
         try {
             User user = loginService.login(loginDTO.getId(), loginDTO.getPassword());
+            if(user==null){
+                return ResponseEntity.status(500).body(null);
+            }
             return ResponseEntity.ok(user);
         } catch (IOException e) {
             return ResponseEntity.status(500).body(null);

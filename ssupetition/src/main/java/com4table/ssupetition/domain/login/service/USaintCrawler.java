@@ -8,8 +8,10 @@ import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
 import java.io.IOException;
 
 @Slf4j
@@ -20,27 +22,19 @@ public class USaintCrawler {
     private static final String LOGIN_URL = "https://smartid.ssu.ac.kr/Symtra_sso/smln.asp?apiReturnUrl=https%3A%2F%2Fsaint.ssu.ac.kr%2FwebSSO%2Fsso.jsp";
     private static final String USER_INFO_URL = "https://saint.ssu.ac.kr/irj/portal";
 
-    /**
-     * 유세인트에 로그인하고 정보를 가져옵니다.
-     * @param id 사용자 ID
-     * @param password 사용자 비밀번호
-     * @return 로그인 및 정보 추출 결과
-     * @throws IOException
-     */
     public LoginResult loginAndGetInfo(String id, String password) throws IOException {
-        // 로그인 폼 데이터 설정
         Connection.Response loginResponse = Jsoup.connect(LOGIN_URL)
                 .data("userid", id, "pwd", password)
                 .method(Connection.Method.POST)
                 .execute();
 
-        // 로그인 성공 여부 확인
+        log.info("{}", loginResponse.cookies());
+
         boolean loginSuccess = isLoginSuccessful(loginResponse);
 
         log.info("check login success : {}", loginSuccess);
 
         if (loginSuccess) {
-            // 로그인 후 유저 정보 페이지 접근
             Document userInfoPage = Jsoup.connect(USER_INFO_URL)
                     .cookies(loginResponse.cookies())
                     .get();
@@ -48,31 +42,32 @@ public class USaintCrawler {
             String userLoginId = getTextByLabel(userInfoPage, "학번");
             String userName = getUserName(userInfoPage);
             String userMajor = getTextByLabel(userInfoPage, "소속");
-            log.info("학번:{}, 이름:{}, 소속:{}",userLoginId,userName,userMajor);
+            log.info("학번:{}, 이름:{}, 소속:{}", userLoginId, userName, userMajor);
 
-            return new LoginResult(true, new UserInfo(userLoginId, userName, userMajor));
+            String extractedId = extractIdFromHtml("/path/to/숭실대학교.html");
+            log.info("Extracted ID from HTML: {}", extractedId);
+
+            if (id.equals(extractedId)) {
+                return new LoginResult(true, new UserInfo(userLoginId, userName, userMajor));
+            } else {
+                log.info("ID does not match: loginId={}, extractedId={}", id, extractedId);
+                return new LoginResult(false, null);
+            }
         } else {
             return new LoginResult(false, null);
         }
     }
+
     private String getTextByLabel(Document document, String label) {
         Element element = document.select("dt:contains(" + label + ") + dd strong").first();
         return element != null ? element.text() : "";
     }
 
-    /**
-     * 로그인 성공 여부를 확인합니다.
-     * @param loginResponse 로그인 후 받은 Response 객체
-     * @return 로그인 성공 여부
-     * @throws IOException
-     */
     private boolean isLoginSuccessful(Connection.Response loginResponse) throws IOException {
-        // 로그인 후 접근 가능한 페이지에서 로그인 성공 여부를 확인하는 로직
         Document document = Jsoup.connect(USER_INFO_URL)
                 .cookies(loginResponse.cookies())
                 .get();
 
-        // 예시로 로그인 페이지에 특정 요소가 없을 경우 실패로 간주
         boolean loggedIn = document.select("p:contains(로그인 페이지)").isEmpty();
         return loggedIn;
     }
@@ -88,6 +83,11 @@ public class USaintCrawler {
         return "";
     }
 
+    private String extractIdFromHtml(String filePath) throws IOException {
+        Document document = Jsoup.parse(new File(filePath), "UTF-8");
+        Element element = document.selectFirst("학번을 나타내는 HTML 요소의 선택자");  // 예: "#studentId" 또는 ".student-id"
+        return element != null ? element.text() : "";
+    }
 
     @Getter
     public static class UserInfo {

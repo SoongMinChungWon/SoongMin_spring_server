@@ -18,9 +18,9 @@ public class CommentController {
     private final CommentService commentService;
 
     @PostMapping("/add/{postId}/{userId}")
-    public Comment addComment(@PathVariable(name = "userId") Long userId, @PathVariable(name = "postId") Long postId, @RequestBody CommentRequest.AddDTO addDTO) {
+    public ResponseEntity<Comment> addComment(@PathVariable(name = "userId") Long userId, @PathVariable(name = "postId") Long postId, @RequestBody CommentRequest.AddDTO addDTO) {
         Comment commentResponse = commentService.addComment(userId, postId, addDTO);
-        return commentResponse;
+        return ResponseEntity.ok(commentResponse);
     }
 
     @DeleteMapping("/delete/{commentId}")

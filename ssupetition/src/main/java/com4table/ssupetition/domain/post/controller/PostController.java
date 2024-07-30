@@ -30,15 +30,14 @@ public class PostController {
 
     @PostMapping("/{postId}/agree/{userId}")
     public ResponseEntity<Post> addPostAgree(@PathVariable(name = "postId") Long postId, @PathVariable(name = "userId") Long userId) {
-        postService.addPostAgree(postId, userId);
-        return ResponseEntity.ok().build();
+        Post post = postService.addPostAgree(postId, userId);
+        return ResponseEntity.ok(post);
     }
 
     @PostMapping("/{postId}/disagree/{userId}")
     public ResponseEntity<Post> addPostDisagree(@PathVariable(name = "postId") Long postId, @PathVariable(name = "userId") Long userId) {
-        postService.addPostDisagree(postId, userId);
-
-        return ResponseEntity.ok().build();
+        Post post = postService.addPostDisagree(postId, userId);
+        return ResponseEntity.ok(post);
     }
 
     @GetMapping
@@ -50,7 +49,10 @@ public class PostController {
     public List<PostResponse.AllListDTO> getAllPostsSortedByAgree() {
         return postService.getAllPostsSortedByAgree();
     }
-
+    @GetMapping("/sorted/agree/{type}")
+    public List<PostResponse.AllListDTO> getAllPostsSortedByAgreeExceptCategory(@PathVariable(name = "type") String type) {
+        return postService.getAllPostsSortedByAgreeExceptCategory(type);
+    }
     @GetMapping("/sorted/agree/{category}/{type}")
     public List<PostResponse.AllListDTO> getAllPostsSortedByAgree(@PathVariable(name = "category") String category, @PathVariable(name = "type") String type) {
         return postService.getAllPostsSortedByAgree(category, type);
@@ -61,6 +63,11 @@ public class PostController {
     public List<PostResponse.AllListDTO> getAllPostsSortedByExpiry() {
         return postService.getAllPostsSortedByExpiry();
     }
+    @GetMapping("/sorted/expiry/{type}")
+    public List<PostResponse.AllListDTO> getAllPostsSortedByExpiryExceptCategory(@PathVariable(name = "type") String type) {
+        return postService.getAllPostsSortedByExpiryExceptCategory( type);
+    }
+
     @GetMapping("/sorted/expiry/{category}/{type}")
     public List<PostResponse.AllListDTO> getAllPostsSortedByExpiry(@PathVariable(name = "category") String category, @PathVariable(name = "type") String type) {
         return postService.getAllPostsSortedByExpiry(category, type);
@@ -69,6 +76,11 @@ public class PostController {
     @GetMapping("/sorted/createdDate")
     public List<PostResponse.AllListDTO> getAllPostsSortedByCreatedDate() {
         return postService.getAllPostsSortedByCreatedDate();
+    }
+
+    @GetMapping("/sorted/createdDate/{type}")
+    public List<PostResponse.AllListDTO> getAllPostsSortedByCreatedDateExceptCategory(@PathVariable(name = "type") String type) {
+        return postService.getAllPostsSortedByCreatedDateExceptCategory(type);
     }
 
     @GetMapping("/sorted/createdDate/{category}/{type}")

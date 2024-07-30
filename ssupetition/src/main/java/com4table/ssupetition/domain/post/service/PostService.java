@@ -208,6 +208,27 @@ public class PostService {
                 .collect(Collectors.toList());
     }
 
+    // 정렬 메서드 추가
+    public List<PostResponse.AllListDTO> getAllPostsSortedByAgreeExceptCategory(String type) {
+        Type typeEnum = Type.valueOf(type);
+        List<Post> posts = postRepository.findByPostTypeOrderByAgreeDesc(typeEnum);
+        return posts.stream().map(this::convertToDto).collect(Collectors.toList());
+    }
+
+    public List<PostResponse.AllListDTO> getAllPostsSortedByExpiryExceptCategory(String type) {
+        Type typeEnum = Type.valueOf(type);
+        List<Post> posts = postRepository.findByPostTypeOrderByCreatedAtAsc(typeEnum);
+        return posts.stream().map(this::convertToDto).collect(Collectors.toList());
+    }
+
+    public List<PostResponse.AllListDTO> getAllPostsSortedByCreatedDateExceptCategory(String type) {
+        Type typeEnum = Type.valueOf(type);
+        List<Post> posts = postRepository.findByPostTypeOrderByCreatedAtDesc(typeEnum);
+        return posts.stream().map(this::convertToDto).collect(Collectors.toList());
+    }
+
+
+
 
     // 정렬 메서드 추가
     public List<PostResponse.AllListDTO> getAllPostsSortedByAgree(String category, String type) {
