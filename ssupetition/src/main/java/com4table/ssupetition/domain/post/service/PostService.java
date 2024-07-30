@@ -1,5 +1,6 @@
 package com4table.ssupetition.domain.post.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com4table.ssupetition.domain.mail.service.MailService;
 import com4table.ssupetition.domain.mypage.domain.AgreePost;
 import com4table.ssupetition.domain.mypage.domain.WritePost;
@@ -19,12 +20,12 @@ import com4table.ssupetition.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.java.Log;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -40,7 +41,6 @@ public class PostService {
     private final AgreePostRepository agreePostRepository;
     private final MailService emailService;
     private final WritePostRepository writePostRepository;
-    private final CommentPostRepository commentPostRepository;
 
 
     public Post addPost(Long userId, PostRequest.AddDTO addDTO) {
@@ -50,12 +50,47 @@ public class PostService {
         Post post = addDTO.toEntity(user);
         Post savedPost = postRepository.save(post);
 
-        List<EmbeddingValue> embeddings = new ArrayList<>();
-        embeddings.add(new EmbeddingValue(null, post, 0.1));
-        embeddings.add(new EmbeddingValue(null, post, 0.2));
-        embeddings.add(new EmbeddingValue(null, post, 0.3));
+        // 외부 서비스에 보낼 페이로드 생성
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("title", addDTO.getTitle());
+        payload.put("content", addDTO.getContent());
+        payload.put("post_id", savedPost.getPostId().toString());
 
+        // 페이로드를 JSON으로 변환
+        ObjectMapper objectMapper = new ObjectMapper();
+        String jsonPayload;
+        try {
+            jsonPayload = objectMapper.writeValueAsString(payload);
+        } catch (Exception e) {
+            throw new RuntimeException("페이로드를 JSON으로 변환하는 데 실패했습니다.", e);
+        }
+
+        // HTTP 헤더 설정
+        HttpHeaders headers = new org.springframework.http.HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        // HTTP 엔티티 생성
+        HttpEntity<String> requestEntity = new HttpEntity<>(jsonPayload, headers);
+
+        // 요청 보내기
+        RestTemplate restTemplate = new RestTemplate();
+        ResponseEntity<Map> responseEntity = restTemplate.exchange(
+                "http://43.203.39.17:5000/embed_post",
+                HttpMethod.POST,
+                requestEntity,
+                Map.class
+        );
+
+        // 응답에서 임베딩 값 추출
+        List<Double> embeddingList = (List<Double>) ((Map) responseEntity.getBody().get("data")).get("embedding");
+
+        // 임베딩 값을 EmbeddingValue 객체로 변환하여 데이터베이스에 저장
+        List<EmbeddingValue> embeddings = new ArrayList<>();
+        for (Double value : embeddingList) {
+            embeddings.add(new EmbeddingValue(null, post, value));
+        }
         embeddingValueRepository.saveAll(embeddings);
+
 
         WritePost writePost = WritePost.builder()
                 .user(user)
@@ -203,7 +238,7 @@ public class PostService {
         List<Double> embeddings = embeddingValueRepository.findByPost_PostId(post.getPostId())
                 .stream().map(EmbeddingValue::getValue).collect(Collectors.toList());
 
-        log.info("1:{},2:{}", post.getPostCategory(), post.getPostType());
+        //log.info("1:{},2:{}", post.getPostCategory(), post.getPostType());
         return PostResponse.AllListDTO.builder()
                 .postId(post.getPostId())
                 .userId(user.getUserId())
@@ -214,7 +249,7 @@ public class PostService {
                 .participants(post.getParticipants())
                 .agree(post.getAgree())
                 .disagree(post.getDisagree())
-                .embedding(embeddings)
+                .createdAt(post.getCreatedAt())
                 .build();
     }
 

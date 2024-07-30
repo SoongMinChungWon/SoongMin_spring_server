@@ -6,6 +6,7 @@ import com4table.ssupetition.domain.post.enums.Type;
 import com4table.ssupetition.domain.user.domain.User;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @NoArgsConstructor
@@ -24,7 +25,8 @@ public class PostResponse {
         private Long participants;
         private Long agree;
         private Long disagree;
-        private List<Double> embedding;
+        private LocalDateTime createdAt;
+
 
         public AllListDTO(Post post) {
             this.postId = post.getPostId();
@@ -36,6 +38,7 @@ public class PostResponse {
             this.participants = post.getParticipants();
             this.agree = post.getAgree();
             this.disagree = post.getDisagree();
+            this.createdAt = post.getCreatedAt();
         }
     }
 }
