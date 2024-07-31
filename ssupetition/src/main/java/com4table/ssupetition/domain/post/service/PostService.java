@@ -49,46 +49,46 @@ public class PostService {
         Post post = addDTO.toEntity(user);
         Post savedPost = postRepository.save(post);
 
-        // 외부 서비스에 보낼 페이로드 생성
-        Map<String, Object> payload = new HashMap<>();
-        payload.put("title", addDTO.getTitle());
-        payload.put("content", addDTO.getContent());
-        payload.put("post_id", savedPost.getPostId().toString());
-
-        // 페이로드를 JSON으로 변환
-        ObjectMapper objectMapper = new ObjectMapper();
-        String jsonPayload;
-        try {
-            jsonPayload = objectMapper.writeValueAsString(payload);
-        } catch (Exception e) {
-            throw new RuntimeException("페이로드를 JSON으로 변환하는 데 실패했습니다.", e);
-        }
-
-        // HTTP 헤더 설정
-        HttpHeaders headers = new org.springframework.http.HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        // HTTP 엔티티 생성
-        HttpEntity<String> requestEntity = new HttpEntity<>(jsonPayload, headers);
-
-        // 요청 보내기
-        RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<Map> responseEntity = restTemplate.exchange(
-                "http://43.203.39.17:5000/embed_post",
-                HttpMethod.POST,
-                requestEntity,
-                Map.class
-        );
-
-        // 응답에서 임베딩 값 추출
-        List<Double> embeddingList = (List<Double>) ((Map) responseEntity.getBody().get("data")).get("embedding");
-
-        // 임베딩 값을 EmbeddingValue 객체로 변환하여 데이터베이스에 저장
-        List<EmbeddingValue> embeddings = new ArrayList<>();
-        for (Double value : embeddingList) {
-            embeddings.add(new EmbeddingValue(null, post, value));
-        }
-        embeddingValueRepository.saveAll(embeddings);
+//        // 외부 서비스에 보낼 페이로드 생성
+//        Map<String, Object> payload = new HashMap<>();
+//        payload.put("title", addDTO.getTitle());
+//        payload.put("content", addDTO.getContent());
+//        payload.put("post_id", savedPost.getPostId().toString());
+//
+//        // 페이로드를 JSON으로 변환
+//        ObjectMapper objectMapper = new ObjectMapper();
+//        String jsonPayload;
+//        try {
+//            jsonPayload = objectMapper.writeValueAsString(payload);
+//        } catch (Exception e) {
+//            throw new RuntimeException("페이로드를 JSON으로 변환하는 데 실패했습니다.", e);
+//        }
+//
+//        // HTTP 헤더 설정
+//        HttpHeaders headers = new org.springframework.http.HttpHeaders();
+//        headers.setContentType(MediaType.APPLICATION_JSON);
+//
+//        // HTTP 엔티티 생성
+//        HttpEntity<String> requestEntity = new HttpEntity<>(jsonPayload, headers);
+//
+//        // 요청 보내기
+//        RestTemplate restTemplate = new RestTemplate();
+//        ResponseEntity<Map> responseEntity = restTemplate.exchange(
+//                "http://43.203.39.17:5000/embed_post",
+//                HttpMethod.POST,
+//                requestEntity,
+//                Map.class
+//        );
+//
+//        // 응답에서 임베딩 값 추출
+//        List<Double> embeddingList = (List<Double>) ((Map) responseEntity.getBody().get("data")).get("embedding");
+//
+//        // 임베딩 값을 EmbeddingValue 객체로 변환하여 데이터베이스에 저장
+//        List<EmbeddingValue> embeddings = new ArrayList<>();
+//        for (Double value : embeddingList) {
+//            embeddings.add(new EmbeddingValue(null, post, value));
+//        }
+//        embeddingValueRepository.saveAll(embeddings);
 
 
         WritePost writePost = WritePost.builder()
