@@ -1,5 +1,6 @@
 package com4table.ssupetition.domain.post.repository;
 
+import com4table.ssupetition.domain.mypage.domain.CommentPost;
 import com4table.ssupetition.domain.post.domain.Post;
 import com4table.ssupetition.domain.post.enums.Category;
 import com4table.ssupetition.domain.post.enums.Type;
@@ -12,6 +13,7 @@ import java.util.List;
 public interface PostRepository extends JpaRepository<Post, Long> {
 //    List<Post> findByPostCategory(Long postCategoryId);
 //    List<Post> findByPostType(Long postCategoryId);
+    List<Post> findByUser_UserId(Long user);
 
 
     // 최다 동의 순으로 정렬

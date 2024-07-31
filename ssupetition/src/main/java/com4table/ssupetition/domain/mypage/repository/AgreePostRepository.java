@@ -9,7 +9,6 @@ import java.util.Optional;
 
 public interface AgreePostRepository extends JpaRepository<AgreePost, Long> {
     Optional<AgreePost> findByPost_PostIdAndUser_UserId(Long postId, Long userId);
-    List<AgreePost> findByUser(User user);
-
+    List<AgreePost> findByUser_UserId(Long userId);
 
 }
