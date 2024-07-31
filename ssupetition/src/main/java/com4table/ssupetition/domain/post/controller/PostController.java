@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/posts")
@@ -22,6 +23,45 @@ public class PostController {
     public ResponseEntity<Post> addPost(@RequestBody PostRequest.AddDTO addDTO, @PathVariable(name = "userId") Long userId) {
         Post createdPost = postService.addPost(userId, addDTO);
         return ResponseEntity.ok(createdPost);
+    }
+
+    //전체 검색
+    @PostMapping("/search")
+    public List<PostResponse.AllListDTO> postSearch(@RequestBody Map<String, String> body) {
+        String keyword = body.get("keyword");
+        return postService.searchPosts(keyword);
+    }
+
+    @PostMapping("/search/sorted-by-agree/{category}")
+    public ResponseEntity<List<PostResponse.AllListDTO>> searchPostsSortedByAgree(
+            @PathVariable(name="category") String category,
+            @RequestBody Map<String, String> body) {
+        String keyword = body.get("keyword");
+        List<PostResponse.AllListDTO> posts = postService.searchPostsSortedByAgree(category, keyword);
+        return ResponseEntity.ok(posts);
+    }
+
+    @PostMapping("/search/sorted-by-expiry/{category}")
+    public ResponseEntity<List<PostResponse.AllListDTO>> searchPostsSortedByExpiry(
+            @PathVariable(name="category") String category,
+            @RequestBody Map<String, String> body) {
+        String keyword = body.get("keyword");
+        List<PostResponse.AllListDTO> posts = postService.searchPostsSortedByExpiry(category, keyword);
+        return ResponseEntity.ok(posts);
+    }
+
+    @GetMapping("/search/sorted-by-created-date/{category}")
+    public ResponseEntity<List<PostResponse.AllListDTO>> searchPostsSortedByCreatedDate(
+            @PathVariable(name="category") String category,
+            @RequestBody Map<String, String> body) {
+        String keyword = body.get("keyword");
+        List<PostResponse.AllListDTO> posts = postService.searchPostsSortedByCreatedDate(category, keyword);
+        return ResponseEntity.ok(posts);
+    }
+    @PostMapping("/ai/{userId}")
+    public List<PostResponse.AllListDTO> postSimilarity(@RequestBody PostRequest.AddDTO addDTO, @PathVariable(name = "userId") Long userId) {
+        postService.getSimilarPost(userId, addDTO);
+        return null;
     }
     @DeleteMapping("/{postId}/{userId}")
     public ResponseEntity<Void> removePost(@PathVariable(name="postId") Long postId, @PathVariable(name="userId")Long userId) {

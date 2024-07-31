@@ -16,6 +16,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     List<Post> findByUser_UserId(Long user);
 
 
+
+
     // 최다 동의 순으로 정렬
     @Query("SELECT p FROM Post p ORDER BY p.agree DESC")
     List<Post> findAllOrderByAgreeDesc();
@@ -41,6 +43,14 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     // 최신 순으로 정렬(카테고리와 타입 적용)
     List<Post> findByPostCategoryAndPostTypeOrderByCreatedAtDesc(Category category, Type type);
     List<Post> findByPostTypeOrderByCreatedAtDesc(Type type);
+
+
+    // 카테고리에 따라 정렬된 게시물 조회
+    List<Post> findByPostCategoryOrderByAgreeDesc(Category category);
+
+    List<Post> findByPostCategoryOrderByCreatedAtAsc(Category category);
+
+    List<Post> findByPostCategoryOrderByCreatedAtDesc(Category category);
 
 
 }

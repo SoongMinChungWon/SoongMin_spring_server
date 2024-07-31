@@ -42,7 +42,6 @@ public class PostService {
     private final MailService emailService;
     private final WritePostRepository writePostRepository;
 
-
     public Post addPost(Long userId, PostRequest.AddDTO addDTO) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid user ID: " + userId));
@@ -100,6 +99,90 @@ public class PostService {
 
         return savedPost;
     }
+
+    public List<PostResponse.AllListDTO> searchPosts( String keyword) {
+
+        List<Post> posts = postRepository.findAll();
+
+        // 제목 또는 내용에 키워드가 포함된 게시물 필터링
+        List<Post> filteredPosts = posts.stream()
+                .peek(post -> log.info("원본 포스트 제목: {}, 내용: {}", post.getTitle(), post.getContent()))  // 원본 포스트 로그
+                .filter(post -> {
+                    boolean matches = post.getTitle().contains(keyword) || post.getContent().contains(keyword);
+                    if (matches) {
+                        log.info("필터링된 포스트 제목: {}, 내용: {}", post.getTitle(), post.getContent());
+                    }
+                    return matches;
+                })
+                .collect(Collectors.toList());
+
+        // DTO로 변환하여 반환
+        return filteredPosts.stream()
+                .map(post -> {
+                    log.info("DTO 변환 포스트 제목: {}, 내용: {}", post.getTitle(), post.getContent());
+                    return convertToDto(post);
+                })
+                .collect(Collectors.toList());
+    }
+
+
+    public List<PostResponse.SimilarityDTO> getSimilarPost(Long userId, PostRequest.AddDTO addDTO) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid user ID: " + userId));
+
+        Post post = addDTO.toEntity(user);
+        Post savedPost = postRepository.save(post);
+
+        // 외부 서비스에 보낼 페이로드 생성
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("title", addDTO.getTitle());
+        payload.put("content", addDTO.getContent());
+        payload.put("post_id", savedPost.getPostId().toString());
+
+        // 페이로드를 JSON으로 변환
+        ObjectMapper objectMapper = new ObjectMapper();
+        String jsonPayload;
+        try {
+            jsonPayload = objectMapper.writeValueAsString(payload);
+        } catch (Exception e) {
+            throw new RuntimeException("페이로드를 JSON으로 변환하는 데 실패했습니다.", e);
+        }
+
+        // HTTP 헤더 설정
+        HttpHeaders headers = new org.springframework.http.HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        // HTTP 엔티티 생성
+        HttpEntity<String> requestEntity = new HttpEntity<>(jsonPayload, headers);
+
+        // 요청 보내기
+        RestTemplate restTemplate = new RestTemplate();
+        ResponseEntity<Map> responseEntity = restTemplate.exchange(
+                "http://43.203.39.17:5000/find_similar_posts",
+                HttpMethod.POST,
+                requestEntity,
+                Map.class
+        );
+
+        // 응답에서 유사 게시물 목록 추출
+        List<Map<String, Object>> similarPosts = (List<Map<String, Object>>) responseEntity.getBody().get("similar_posts");
+        List<PostResponse.SimilarityDTO> similarPostDTOs = new ArrayList<>();
+
+        log.info("size: {}", similarPostDTOs.size());
+
+        for (Map<String, Object> similarPost : similarPosts) {
+            Long postId = Long.valueOf((Integer) similarPost.get("post_id"));
+            Double similarity = (Double) similarPost.get("similarity");
+
+            log.info("postid: {}, similarity: {}", postId, similarity);
+
+            similarPostDTOs.add(new PostResponse.SimilarityDTO(postId, similarity));
+        }
+
+        return null;
+    }
+
+
     public void removePost(Long postId, Long userId) {
         embeddingValueRepository.deleteByPost_PostId(postId);
         postRepository.deleteById(postId);
@@ -276,6 +359,61 @@ public class PostService {
                 .build();
     }
 
+    public List<PostResponse.AllListDTO> searchPostsSortedByAgree(String category, String keyword) {
+        Category categoryEnum = Category.valueOf(category);
+
+        log.info("카테고리, 키워드 : {}, {}", categoryEnum, keyword);
+
+        List<Post> posts = postRepository.findByPostCategoryOrderByAgreeDesc(categoryEnum);
+
+        // 제목 또는 내용에 키워드가 포함된 게시물 필터링
+        List<Post> filteredPosts = posts.stream()
+                .peek(post -> log.info("원본 포스트 제목: {}, 내용: {}", post.getTitle(), post.getContent()))
+                .filter(post -> post.getTitle().contains(keyword) || post.getContent().contains(keyword))
+                .peek(post -> log.info("필터링된 포스트 제목: {}, 내용: {}", post.getTitle(), post.getContent()))
+                .collect(Collectors.toList());
+
+        // DTO로 변환하여 반환
+        return filteredPosts.stream().map(this::convertToDto).collect(Collectors.toList());
+    }
+
+    public List<PostResponse.AllListDTO> searchPostsSortedByExpiry(String category, String keyword) {
+        Category categoryEnum = Category.valueOf(category);
+
+        log.info("카테고리, 키워드 : {}, {}", categoryEnum, keyword);
+
+        List<Post> posts = postRepository.findByPostCategoryOrderByCreatedAtAsc(categoryEnum);
+
+        // 제목 또는 내용에 키워드가 포함된 게시물 필터링
+        List<Post> filteredPosts = posts.stream()
+                .peek(post -> log.info("원본 포스트 제목: {}, 내용: {}", post.getTitle(), post.getContent()))
+                .filter(post -> post.getTitle().contains(keyword) || post.getContent().contains(keyword))
+                .peek(post -> log.info("필터링된 포스트 제목: {}, 내용: {}", post.getTitle(), post.getContent()))
+                .collect(Collectors.toList());
+
+        // DTO로 변환하여 반환
+        return filteredPosts.stream().map(this::convertToDto).collect(Collectors.toList());
+    }
+
+    public List<PostResponse.AllListDTO> searchPostsSortedByCreatedDate(String category, String keyword) {
+        Category categoryEnum = Category.valueOf(category);
+
+        log.info("카테고리, 키워드 : {}, {}", categoryEnum, keyword);
+
+        List<Post> posts = postRepository.findByPostCategoryOrderByCreatedAtDesc(categoryEnum);
+
+        // 제목 또는 내용에 키워드가 포함된 게시물 필터링
+        List<Post> filteredPosts = posts.stream()
+                .peek(post -> log.info("원본 포스트 제목: {}, 내용: {}", post.getTitle(), post.getContent()))
+                .filter(post -> post.getTitle().contains(keyword) || post.getContent().contains(keyword))
+                .peek(post -> log.info("필터링된 포스트 제목: {}, 내용: {}", post.getTitle(), post.getContent()))
+                .collect(Collectors.toList());
+
+        // DTO로 변환하여 반환
+        return filteredPosts.stream().map(this::convertToDto).collect(Collectors.toList());
+
+    }
 }
+
 
 

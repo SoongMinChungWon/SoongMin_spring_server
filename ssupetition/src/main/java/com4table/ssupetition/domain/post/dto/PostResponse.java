@@ -68,5 +68,16 @@ public class PostResponse {
                     .build();
         }
     }
+    public static class SimilarityDTO {
+        private Long postId;
+        private Double similarity;
+
+        public SimilarityDTO(Long postId, Double similarity) {
+            this.postId = postId;
+            this.similarity = similarity;
+        }
+
+        // Getters and setters
+    }
 
 }
