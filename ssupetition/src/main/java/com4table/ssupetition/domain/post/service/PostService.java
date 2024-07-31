@@ -105,7 +105,7 @@ public class PostService {
         postRepository.deleteById(postId);
     }
 
-    public Post addPostAgree(Long postId,Long userId) {
+    public PostResponse.AllListDTO addPostAgree(Long postId, Long userId) {
         Post post = postRepository.findById(postId).orElseThrow(() -> new RuntimeException("Post not found"));
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -116,15 +116,15 @@ public class PostService {
         post.setAgree(post.getAgree() + 1);
         post.setParticipants(post.getParticipants()+1);
 
-        float agreeRate = (float) post.getAgree() / post.getParticipants();
+        float agreeRate = (float) 100* post.getAgree() / post.getParticipants();
 
         boolean sendEmail = checkAgreeCountAndSendEmail(agreeRate, post.getAgree(), post.getTitle(), post.getContent());
         checkChangeType(postId, sendEmail);
-
-        return postRepository.save(post);
+        Post savedPost = postRepository.save(post);
+        return new PostResponse.AllListDTO(savedPost);
     }
 
-    public Post addPostDisagree(Long postId,Long userId) {
+    public PostResponse.AllListDTO addPostDisagree(Long postId,Long userId) {
         Post post = postRepository.findById(postId).orElseThrow(() -> new RuntimeException("Post not found"));
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -134,18 +134,20 @@ public class PostService {
         post.setDisagree(post.getDisagree() + 1);
         post.setParticipants(post.getParticipants()+1);
         checkChangeType(postId, false);
-
-        return postRepository.save(post);
+        Post savedPost = postRepository.save(post);
+        return new PostResponse.AllListDTO(savedPost);
     }
 
     public void checkChangeType(Long postId, boolean sendEmail){
         Post post = postRepository.findById(postId).orElseThrow(() -> new RuntimeException("Post not found"));
 
-        if(post.getPostType()==Type.state1 && post.getParticipants()>5){
+        log.info("sendEmail={}, posttype={}, participate={}",sendEmail,post.getPostType(), post.getParticipants());
+
+        if(post.getPostType()==Type.state1 && post.getParticipants()>=30){
             post.setPostType(Type.state2);
         }
-        else if(post.getPostType()==Type.state2 && sendEmail){
-
+        if(sendEmail){
+            post.setPostType(Type.state3);
         }
     }
 
@@ -167,7 +169,7 @@ public class PostService {
     }
 
     public boolean checkAgreeCountAndSendEmail(float agreeRate, long participate, String title, String content) {
-        if (participate>10 && agreeRate >= 2) {
+        if (participate>=30 && agreeRate >= 70) {
             String to = "ssupetition@gmail.com";
             String subject = title;
             String text = "이 메일로 답신 부탁드립니다.\n" + content;

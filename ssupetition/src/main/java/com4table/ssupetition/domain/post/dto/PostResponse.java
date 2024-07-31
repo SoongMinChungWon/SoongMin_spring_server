@@ -41,4 +41,32 @@ public class PostResponse {
             this.createdAt = post.getCreatedAt();
         }
     }
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public class PostDTO {
+        private Long postId;
+        private String title;
+        private String content;
+        private Long agree;
+        private Long disagree;
+        private Long participants;
+        private Long userId; // 또는 String userName; 등 필요한 사용자 정보 추가
+
+        public Post toEntity(Post post) {
+            return Post.builder()
+                    .user(post.getUser())
+                    .postId(post.getPostId())
+                    .postCategory(post.getPostCategory())
+                    .postType(post.getPostType())
+                    .participants(post.getParticipants())
+                    .agree(post.getAgree())
+                    .disagree(post.getDisagree())
+                    .title(post.getTitle())
+                    .content(post.getContent())
+
+                    .build();
+        }
+    }
+
 }

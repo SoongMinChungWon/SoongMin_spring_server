@@ -5,6 +5,7 @@ import com4table.ssupetition.domain.post.dto.PostRequest;
 import com4table.ssupetition.domain.post.dto.PostResponse;
 import com4table.ssupetition.domain.post.service.PostService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,15 +30,21 @@ public class PostController {
     }
 
     @PostMapping("/{postId}/agree/{userId}")
-    public ResponseEntity<Post> addPostAgree(@PathVariable(name = "postId") Long postId, @PathVariable(name = "userId") Long userId) {
-        Post post = postService.addPostAgree(postId, userId);
-        return ResponseEntity.ok(post);
+    public ResponseEntity<PostResponse.AllListDTO> addPostAgree(@PathVariable(name = "postId") Long postId, @PathVariable(name = "userId") Long userId) {
+        PostResponse.AllListDTO allListDTO = postService.addPostAgree(postId, userId);
+        if(allListDTO==null){
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        }
+        return ResponseEntity.ok(allListDTO);
     }
 
     @PostMapping("/{postId}/disagree/{userId}")
-    public ResponseEntity<Post> addPostDisagree(@PathVariable(name = "postId") Long postId, @PathVariable(name = "userId") Long userId) {
-        Post post = postService.addPostDisagree(postId, userId);
-        return ResponseEntity.ok(post);
+    public ResponseEntity<PostResponse.AllListDTO> addPostDisagree(@PathVariable(name = "postId") Long postId, @PathVariable(name = "userId") Long userId) {
+        PostResponse.AllListDTO allListDTO = postService.addPostDisagree(postId, userId);
+        if(allListDTO==null){
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        }
+        return ResponseEntity.ok(allListDTO);
     }
 
     @GetMapping

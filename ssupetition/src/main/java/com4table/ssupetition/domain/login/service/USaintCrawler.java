@@ -8,7 +8,6 @@ import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -23,7 +22,14 @@ public class USaintCrawler {
     private static final String USER_INFO_URL = "https://saint.ssu.ac.kr/irj/portal";
 
     public LoginResult loginAndGetInfo(String id, String password) throws IOException {
+        // 로그인 페이지에 접속하여 필요한 쿠키를 수집합니다.
+        Connection.Response loginPageResponse = Jsoup.connect(LOGIN_URL)
+                .method(Connection.Method.GET)
+                .execute();
+
+        // 로그인 요청을 보냅니다.
         Connection.Response loginResponse = Jsoup.connect(LOGIN_URL)
+                .cookies(loginPageResponse.cookies())
                 .data("userid", id, "pwd", password)
                 .method(Connection.Method.POST)
                 .execute();
@@ -35,6 +41,7 @@ public class USaintCrawler {
         log.info("check login success : {}", loginSuccess);
 
         if (loginSuccess) {
+            // 사용자 정보 페이지에 접근하여 데이터를 가져옵니다.
             Document userInfoPage = Jsoup.connect(USER_INFO_URL)
                     .cookies(loginResponse.cookies())
                     .get();
@@ -44,9 +51,11 @@ public class USaintCrawler {
             String userMajor = getTextByLabel(userInfoPage, "소속");
             log.info("학번:{}, 이름:{}, 소속:{}", userLoginId, userName, userMajor);
 
-            String extractedId = extractIdFromHtml("/path/to/숭실대학교.html");
+            // HTML 파일에서 학번 추출
+            String extractedId = extractIdFromHtml("/mnt/data/숭실대학교.html");
             log.info("Extracted ID from HTML: {}", extractedId);
 
+            // 입력한 id와 추출된 학번 비교
             if (id.equals(extractedId)) {
                 return new LoginResult(true, new UserInfo(userLoginId, userName, userMajor));
             } else {
@@ -85,7 +94,7 @@ public class USaintCrawler {
 
     private String extractIdFromHtml(String filePath) throws IOException {
         Document document = Jsoup.parse(new File(filePath), "UTF-8");
-        Element element = document.selectFirst("학번을 나타내는 HTML 요소의 선택자");  // 예: "#studentId" 또는 ".student-id"
+        Element element = document.selectFirst("dd strong:contains(20201870)"); // 학번을 나타내는 선택자
         return element != null ? element.text() : "";
     }
 
