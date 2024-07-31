@@ -3,6 +3,7 @@ package com4table.ssupetition.domain.post.controller;
 import com4table.ssupetition.domain.post.domain.Post;
 import com4table.ssupetition.domain.post.dto.PostRequest;
 import com4table.ssupetition.domain.post.dto.PostResponse;
+import com4table.ssupetition.domain.post.service.PostAnswerService;
 import com4table.ssupetition.domain.post.service.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -18,6 +19,7 @@ import java.util.Map;
 public class PostController {
 
     private final PostService postService;
+    private final PostAnswerService postAnswerService;
 
     @PostMapping("/{userId}")
     public ResponseEntity<Post> addPost(@RequestBody PostRequest.AddDTO addDTO, @PathVariable(name = "userId") Long userId) {
@@ -135,4 +137,8 @@ public class PostController {
         return postService.getAllPostsSortedByCreatedDate(category, type);
     }
 
+    @GetMapping("/answer/{postId}")
+    public List<PostResponse.PostAnswerDTO> getPostWithAnswers(@PathVariable(name = "postId") Long postId) {
+        return postAnswerService.getAnswersWithPostId(postId);
+    }
 }

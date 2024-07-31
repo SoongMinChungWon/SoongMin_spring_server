@@ -201,7 +201,7 @@ public class PostService {
 
         float agreeRate = (float) 100* post.getAgree() / post.getParticipants();
 
-        boolean sendEmail = checkAgreeCountAndSendEmail(agreeRate, post.getAgree(), post.getTitle(), post.getContent());
+        boolean sendEmail = checkAgreeCountAndSendEmail(agreeRate, post.getAgree(), post.getTitle(), post.getContent(), post.getPostId());
         checkChangeType(postId, sendEmail);
         Post savedPost = postRepository.save(post);
         return new PostResponse.AllListDTO(savedPost);
@@ -251,10 +251,10 @@ public class PostService {
         return false;
     }
 
-    public boolean checkAgreeCountAndSendEmail(float agreeRate, long participate, String title, String content) {
+    public boolean checkAgreeCountAndSendEmail(float agreeRate, long participate, String title, String content, Long postId) {
         if (participate>=30 && agreeRate >= 70) {
             String to = "ssupetition@gmail.com";
-            String subject = title;
+            String subject = makeTitleForm(postId, title);
             String text = "이 메일로 답신 부탁드립니다.\n" + content;
             emailService.sendSimpleMessage(to, subject, text);
 
@@ -262,7 +262,9 @@ public class PostService {
         }
         return false;
     }
-
+    public String makeTitleForm(Long postId, String subject) {
+        return "[PostId: " + postId + "] " + subject;
+    }
     public List<PostResponse.AllListDTO> getAllPosts() {
         List<Post> posts = postRepository.findAll();
         //System.out.println(posts);
@@ -413,6 +415,18 @@ public class PostService {
         return filteredPosts.stream().map(this::convertToDto).collect(Collectors.toList());
 
     }
+
+
+    //최근에 메일을 날리거나 메일을 받은 글
+    public List<PostResponse.AllListDTO> getPostsByUserIdAndType(Long userId) {
+        List<Type> targetTypes = Arrays.asList(Type.state3, Type.state4);
+        List<Post> posts = postRepository.findByUserIdAndPostTypeInOrderByUpdateAtDesc(userId, targetTypes);
+        return posts.stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+
+
 }
 
 
