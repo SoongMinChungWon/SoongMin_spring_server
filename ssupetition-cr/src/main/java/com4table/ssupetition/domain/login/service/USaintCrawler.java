@@ -30,9 +30,9 @@ public class USaintCrawler {
 
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--headless"); // 헤드리스 모드로 실행
-        options.addArguments("--no-sandbox");
-        options.addArguments("--disable-dev-shm-usage");
-        options.addArguments("--remote-debugging-port=9222");
+//        options.addArguments("--no-sandbox");
+//        options.addArguments("--disable-dev-shm-usage");
+//        options.addArguments("--remote-debugging-port=9222");
 
         WebDriver driver = new ChromeDriver(options);
 
