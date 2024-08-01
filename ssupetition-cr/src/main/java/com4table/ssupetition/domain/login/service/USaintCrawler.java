@@ -50,7 +50,7 @@ public class USaintCrawler {
             submitButton.click();
 
             // 로그인 완료 대기
-            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(3)); // Selenium 4.x에 맞게 수정
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10)); // Selenium 4.x에 맞게 수정
             wait.until(ExpectedConditions.urlToBe(USER_INFO_URL));
 
             // 로그인 성공 확인
@@ -108,7 +108,7 @@ public class USaintCrawler {
             submitButton.click();
 
             // 로그인 완료 대기
-            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(3)); // Selenium 4.x에 맞게 수정
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10)); // Selenium 4.x에 맞게 수정
             wait.until(ExpectedConditions.urlToBe(USER_INFO_URL));
 
             // 로그인 성공 확인
