@@ -27,8 +27,13 @@ public class USaintCrawler {
         String driverPath = System.getProperty("user.dir") + "/drivers/chromedriver-linux64/chromedriver";
         //String driverPath = System.getProperty("user.dir") + "/drivers/chromedriver-mac-arm64/chromedriver";
         System.setProperty("webdriver.chrome.driver", driverPath);
+
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--headless"); // 헤드리스 모드로 실행
+        options.addArguments("--no-sandbox");
+        options.addArguments("--disable-dev-shm-usage");
+        options.addArguments("--remote-debugging-port=9222");
+
         WebDriver driver = new ChromeDriver(options);
 
         try {
