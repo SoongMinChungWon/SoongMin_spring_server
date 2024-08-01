@@ -24,8 +24,8 @@ public class USaintCrawler {
 
     public LoginResult loginAndGetInfo(String id, String password) {
         // WebDriver 설정
-        //String driverPath = System.getProperty("user.dir") + "/drivers/chromedriver-linux64/chromedriver";
-        String driverPath = System.getProperty("user.dir") + "/drivers/chromedriver-mac-arm64/chromedriver";
+        String driverPath = System.getProperty("user.dir") + "/drivers/chromedriver-linux64/chromedriver";
+        //String driverPath = System.getProperty("user.dir") + "/drivers/chromedriver-mac-arm64/chromedriver";
         System.setProperty("webdriver.chrome.driver", driverPath);
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--headless"); // 헤드리스 모드로 실행
