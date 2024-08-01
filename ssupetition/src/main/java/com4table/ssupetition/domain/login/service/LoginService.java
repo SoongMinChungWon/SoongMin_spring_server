@@ -32,9 +32,9 @@ public class LoginService {
             // 새로운 유저 생성 및 저장
             if (userInfo != null) {
                 user = User.builder()
-                        .loginId(id)
-                        .major(id)
-                        .name(id)
+                        .loginId(userInfo.getLoginId())
+                        .major(userInfo.getUserMajor())
+                        .name(user.getName())
                         .build();
 //                user = User.builder()
 //                        .loginId(userInfo.getLoginId())
