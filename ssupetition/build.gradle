@@ -34,7 +34,7 @@ dependencies {
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
 	//유세인트 크롤링
-	implementation 'org.jsoup:jsoup:1.15.3'
+	implementation 'org.seleniumhq.selenium:selenium-java:4.20.0'
 
 	//이메일 서비스
 	implementation 'org.springframework.boot:spring-boot-starter-mail'
@@ -42,6 +42,9 @@ dependencies {
 	//웹소켓
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+
+	//이메일 모니터링(답장)
+	implementation 'com.sun.mail:jakarta.mail:2.0.0'
 
 }
 

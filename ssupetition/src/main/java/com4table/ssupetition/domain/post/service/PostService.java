@@ -199,9 +199,11 @@ public class PostService {
         post.setAgree(post.getAgree() + 1);
         post.setParticipants(post.getParticipants()+1);
 
-        float agreeRate = (float) 100* post.getAgree() / post.getParticipants();
+        float agreeRate = (float) post.getAgree() / post.getParticipants();
 
-        boolean sendEmail = checkAgreeCountAndSendEmail(agreeRate, post.getAgree(), post.getTitle(), post.getContent(), post.getPostId());
+        boolean sendEmail = checkAgreeCountAndSendEmail(agreeRate, post.getParticipants(), post.getTitle(), post.getContent(), post.getPostId(), post.getPostType());
+
+        log.info("sendemail:{}",sendEmail);
         checkChangeType(postId, sendEmail);
         Post savedPost = postRepository.save(post);
         return new PostResponse.AllListDTO(savedPost);
@@ -251,8 +253,9 @@ public class PostService {
         return false;
     }
 
-    public boolean checkAgreeCountAndSendEmail(float agreeRate, long participate, String title, String content, Long postId) {
-        if (participate>=30 && agreeRate >= 70) {
+    public boolean checkAgreeCountAndSendEmail(float agreeRate, Long participate, String title, String content, Long postId, Type type) {
+        log.info("chk:{},{},{}, participate:{}",participate>=30 ,agreeRate >= 0.7 ,(type==Type.state1||type==Type.state2), participate);
+        if (participate>=30 && agreeRate >= 0.7 && (type==Type.state1||type==Type.state2)) {
             String to = "ssupetition@gmail.com";
             String subject = makeTitleForm(postId, title);
             String text = "이 메일로 답신 부탁드립니다.\n" + content;
@@ -263,7 +266,7 @@ public class PostService {
         return false;
     }
     public String makeTitleForm(Long postId, String subject) {
-        return "[PostId: " + postId + "] " + subject;
+        return "[Code: " + postId + "] " + subject;
     }
     public List<PostResponse.AllListDTO> getAllPosts() {
         List<Post> posts = postRepository.findAll();

@@ -82,11 +82,13 @@ public class MailService {
             for (Message message : messages) {
                 if(message.getFlags().contains(Flags.Flag.SEEN)) continue;
 
-                log.info("message title:{}",message.getSubject());
-                log.info("message content:{}", message.getContent().toString());
-                if (message.getSubject().startsWith("Re: [PostId:")) {
+
+                if (message.getSubject().startsWith("Re: [Code:")) {
                     Long postId = extractPostIdFromSubject(message.getSubject());
                     String content = extractContent(message);
+                    log.info("message title:{}",message.getSubject());
+                    log.info("message content:{}//////////////끝", content);
+
                     saveReplyAndSetType(postId, content);
 
                     // 메일을 읽음 처리
@@ -103,11 +105,14 @@ public class MailService {
 
     private String extractContent(Message message) throws IOException, MessagingException {
         if (message.isMimeType("text/plain")) {
+            log.info("1");
             return message.getContent().toString();
         } else if (message.isMimeType("text/html")) {
+            log.info("2");
             return message.getContent().toString(); // HTML을 텍스트로 변환할 필요가 있을 수 있음
         } else if (message.getContent() instanceof MimeMultipart) {
             MimeMultipart multipart = (MimeMultipart) message.getContent();
+            log.info("3");
             return getTextFromMimeMultipart(multipart);
         }
         return "";
@@ -118,17 +123,18 @@ public class MailService {
         for (int i = 0; i < multipart.getCount(); i++) {
             BodyPart bodyPart = multipart.getBodyPart(i);
             if (bodyPart.getContentType().contains("text/plain")) {
+                //if(bodyPart.getContent().toString().equals("On")) break;
                 text.append(bodyPart.getContent().toString());
             } else if (bodyPart.getContentType().contains("text/html")) {
                 // HTML을 텍스트로 변환할 필요가 있을 수 있음
-                text.append(bodyPart.getContent().toString());
+                //text.append(bodyPart.getContent().toString());
             }
         }
         return text.toString();
     }
 
     private Long extractPostIdFromSubject(String subject) {
-        String[] parts = subject.split("\\[PostId: ");
+        String[] parts = subject.split("\\[Code: ");
         if (parts.length > 1) {
             String postIdStr = parts[1].split("\\]")[0];
             return Long.parseLong(postIdStr);
