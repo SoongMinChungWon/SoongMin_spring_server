@@ -53,6 +53,7 @@ public class USaintCrawler {
             WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10)); // Selenium 4.x에 맞게 수정
             wait.until(ExpectedConditions.urlToBe(USER_INFO_URL));
 
+            log.info("check before login");
             // 로그인 성공 확인
             boolean loginSuccess = isLoginSuccessful(driver);
 
