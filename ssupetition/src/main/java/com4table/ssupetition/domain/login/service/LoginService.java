@@ -48,10 +48,13 @@ public class LoginService {
             }
         } else {
             log.info("user 존재");
+            if(!uSaintCrawler.userCheck(id, password)){
+                log.info("비밀번호 틀림");
+                return null;
+            }
         }
 
         // 세션을 통한 로그인 로직 (생략)
-
         return user;
     }
 }

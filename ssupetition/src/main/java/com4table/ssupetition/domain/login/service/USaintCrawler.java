@@ -45,7 +45,7 @@ public class USaintCrawler {
             submitButton.click();
 
             // 로그인 완료 대기
-            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10)); // Selenium 4.x에 맞게 수정
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(3)); // Selenium 4.x에 맞게 수정
             wait.until(ExpectedConditions.urlToBe(USER_INFO_URL));
 
             // 로그인 성공 확인
@@ -77,6 +77,37 @@ public class USaintCrawler {
             } else {
                 return new LoginResult(false, null);
             }
+        } finally {
+            driver.quit(); // 브라우저 종료
+        }
+    }
+
+    public Boolean userCheck(String id, String password) {
+        // WebDriver 설정
+        System.setProperty("webdriver.chrome.driver", "C:\\Users\\gwanr\\Downloads\\chromedriver-win64\\chromedriver-win64\\chromedriver.exe"); // ChromeDriver 경로 설정
+        ChromeOptions options = new ChromeOptions();
+        options.addArguments("--headless"); // 헤드리스 모드로 실행
+        WebDriver driver = new ChromeDriver(options);
+
+        try {
+            // 로그인 페이지 요청
+            driver.get(LOGIN_URL);
+
+            // 로그인 요청
+            WebElement userIdField = driver.findElement(By.name("userid"));
+            WebElement passwordField = driver.findElement(By.name("pwd"));
+            WebElement submitButton = driver.findElement(By.cssSelector("a.btn_login")); // 로그인 버튼 클래스 선택
+
+            userIdField.sendKeys(id);
+            passwordField.sendKeys(password);
+            submitButton.click();
+
+            // 로그인 완료 대기
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(3)); // Selenium 4.x에 맞게 수정
+            wait.until(ExpectedConditions.urlToBe(USER_INFO_URL));
+
+            // 로그인 성공 확인
+            return isLoginSuccessful(driver);
         } finally {
             driver.quit(); // 브라우저 종료
         }
