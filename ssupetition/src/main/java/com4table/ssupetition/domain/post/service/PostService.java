@@ -9,6 +9,7 @@ import com4table.ssupetition.domain.mypage.repository.CommentPostRepository;
 import com4table.ssupetition.domain.mypage.repository.WritePostRepository;
 import com4table.ssupetition.domain.post.domain.EmbeddingValue;
 import com4table.ssupetition.domain.post.domain.Post;
+import com4table.ssupetition.domain.post.domain.PostAnswer;
 import com4table.ssupetition.domain.post.dto.PostRequest;
 import com4table.ssupetition.domain.post.dto.PostResponse;
 import com4table.ssupetition.domain.post.enums.Category;
@@ -126,18 +127,13 @@ public class PostService {
     }
 
 
-    public List<PostResponse.SimilarityDTO> getSimilarPost(Long userId, PostRequest.AddDTO addDTO) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid user ID: " + userId));
-
-        Post post = addDTO.toEntity(user);
-        Post savedPost = postRepository.save(post);
+    public List<PostResponse.PostAIDTO> getSimilarPost(PostRequest.AddDTO addDTO) {
 
         // 외부 서비스에 보낼 페이로드 생성
         Map<String, Object> payload = new HashMap<>();
         payload.put("title", addDTO.getTitle());
         payload.put("content", addDTO.getContent());
-        payload.put("post_id", savedPost.getPostId().toString());
+        payload.put("post_id", 0);
 
         // 페이로드를 JSON으로 변환
         ObjectMapper objectMapper = new ObjectMapper();
@@ -158,28 +154,43 @@ public class PostService {
         // 요청 보내기
         RestTemplate restTemplate = new RestTemplate();
         ResponseEntity<Map> responseEntity = restTemplate.exchange(
-                "http://43.203.39.17:5000/find_similar_posts",
+                "http://43.203.39.17:5000/find_relevant_posts",
                 HttpMethod.POST,
                 requestEntity,
                 Map.class
         );
 
         // 응답에서 유사 게시물 목록 추출
-        List<Map<String, Object>> similarPosts = (List<Map<String, Object>>) responseEntity.getBody().get("similar_posts");
-        List<PostResponse.SimilarityDTO> similarPostDTOs = new ArrayList<>();
+        List<Map<String, Object>> similarPosts = (List<Map<String, Object>>) responseEntity.getBody().get("relevant_posts");
+        List<PostResponse.PostAIDTO> postAIDTOs = new ArrayList<>();
 
-        log.info("size: {}", similarPostDTOs.size());
+        log.info("size: {}", similarPosts.size());
 
         for (Map<String, Object> similarPost : similarPosts) {
             Long postId = Long.valueOf((Integer) similarPost.get("post_id"));
             Double similarity = (Double) similarPost.get("similarity");
 
-            log.info("postid: {}, similarity: {}", postId, similarity);
+            // similarity를 백분율로 변환하고 소수점 이하를 버림
+            Long similarityPercentage = (long) (Math.floor(similarity * 100));
 
-            similarPostDTOs.add(new PostResponse.SimilarityDTO(postId, similarity));
+            String similarityStr = similarityPercentage + "%";
+
+
+            // 유사 게시물에 대한 추가 정보가 필요할 경우, Post를 조회하거나 관련 정보를 가져와야 함
+            Post existingPost = postRepository.findById(postId)
+                    .orElseThrow(() -> new IllegalArgumentException("Invalid post ID: " + postId));
+
+            // 예를 들어, PostAnswer를 가져오는 경우
+            //PostAnswer postAnswer = postAnswerRepository.findByPostId(postId);
+
+            // PostAIDTO 객체 생성
+            PostResponse.PostAIDTO postAIDTO = new PostResponse.PostAIDTO(existingPost, similarityStr);
+            postAIDTOs.add(postAIDTO);
+
+            log.info("postid: {}, similarity: {}", postId, similarity);
         }
 
-        return null;
+        return postAIDTOs;
     }
 
 

@@ -60,10 +60,10 @@ public class PostController {
         List<PostResponse.AllListDTO> posts = postService.searchPostsSortedByCreatedDate(category, keyword);
         return ResponseEntity.ok(posts);
     }
-    @PostMapping("/ai/{userId}")
-    public List<PostResponse.AllListDTO> postSimilarity(@RequestBody PostRequest.AddDTO addDTO, @PathVariable(name = "userId") Long userId) {
-        postService.getSimilarPost(userId, addDTO);
-        return null;
+    @PostMapping("/ai")
+    public List<PostResponse.PostAIDTO> postSimilarity(@RequestBody PostRequest.AddDTO addDTO) {
+        List<PostResponse.PostAIDTO> similarPost = postService.getSimilarPost(addDTO);
+        return similarPost;
     }
     @DeleteMapping("/{postId}/{userId}")
     public ResponseEntity<Void> removePost(@PathVariable(name="postId") Long postId, @PathVariable(name="userId")Long userId) {
