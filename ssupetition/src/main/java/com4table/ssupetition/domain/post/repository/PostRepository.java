@@ -55,6 +55,11 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     //알림용 조회
     @Query("SELECT p FROM Post p WHERE p.user.userId = :userId AND p.postType IN :types ORDER BY p.updateAt DESC")
     List<Post> findByUserIdAndPostTypeInOrderByUpdateAtDesc(@Param("userId") Long userId, @Param("types") List<Type> types);
+
+    //타입별 조회(state1, state2 합쳐서 조회)
+    List<Post> findByPostTypeInOrderByAgreeDesc(List<Type> postTypes);
+    List<Post> findByPostTypeInOrderByCreatedAtAsc(List<Type> postTypes);
+    List<Post> findByPostTypeInOrderByCreatedAtDesc(List<Type> postTypes);
 }
 
 

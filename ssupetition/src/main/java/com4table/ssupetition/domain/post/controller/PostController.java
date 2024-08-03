@@ -106,6 +106,10 @@ public class PostController {
     public List<PostResponse.AllListDTO> getAllPostsSortedByAgree(@PathVariable(name = "category") String category, @PathVariable(name = "type") String type) {
         return postService.getAllPostsSortedByAgree(category, type);
     }
+    @GetMapping("/sorted/agree/state12")
+    public List<PostResponse.AllListDTO> getAllPostsSortedByAgreeState1AndState2() {
+        return postService.getAllPostsSortedByAgreeForState1AndState2();
+    }
 
 
     @GetMapping("/sorted/expiry")
@@ -121,6 +125,10 @@ public class PostController {
     public List<PostResponse.AllListDTO> getAllPostsSortedByExpiry(@PathVariable(name = "category") String category, @PathVariable(name = "type") String type) {
         return postService.getAllPostsSortedByExpiry(category, type);
     }
+    @GetMapping("/sorted/expiry/state12")
+    public List<PostResponse.AllListDTO> getAllPostsSortedByExpiryState1AndState2() {
+        return postService.getAllPostsSortedByExpiryForState1AndState2();
+    }
 
     @GetMapping("/sorted/createdDate")
     public List<PostResponse.AllListDTO> getAllPostsSortedByCreatedDate() {
@@ -135,6 +143,11 @@ public class PostController {
     @GetMapping("/sorted/createdDate/{category}/{type}")
     public List<PostResponse.AllListDTO> getAllPostsSortedByCreatedDate(@PathVariable(name = "category") String category, @PathVariable(name = "type") String type) {
         return postService.getAllPostsSortedByCreatedDate(category, type);
+    }
+
+    @GetMapping("/sorted/createdDate/state12")
+    public List<PostResponse.AllListDTO> getAllPostsSortedByCreatedDateState1AndState2() {
+        return postService.getAllPostsSortedByCreatedDateForState1AndState2();
     }
 
     @GetMapping("/answer/{postId}")

@@ -354,6 +354,32 @@ public class PostService {
     }
 
 
+    public List<PostResponse.AllListDTO> getAllPostsSortedByAgreeForState1AndState2() {
+        List<Type> targetTypes = Arrays.asList(Type.state1, Type.state2);
+        List<Post> posts = postRepository.findByPostTypeInOrderByAgreeDesc(targetTypes);
+        return posts.stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+
+    // 만료일에 따른 정렬 (createdAt 오름차순)
+    public List<PostResponse.AllListDTO> getAllPostsSortedByExpiryForState1AndState2() {
+        List<Type> targetTypes = Arrays.asList(Type.state1, Type.state2);
+        List<Post> posts = postRepository.findByPostTypeInOrderByCreatedAtAsc(targetTypes);
+        return posts.stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+
+    // 생성일에 따른 정렬 (createdAt 내림차순)
+    public List<PostResponse.AllListDTO> getAllPostsSortedByCreatedDateForState1AndState2() {
+        List<Type> targetTypes = Arrays.asList(Type.state1, Type.state2);
+        List<Post> posts = postRepository.findByPostTypeInOrderByCreatedAtDesc(targetTypes);
+        return posts.stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+
     private PostResponse.AllListDTO convertToDto(Post post) {
         User user = userRepository.findById(post.getUser().getUserId()).orElseThrow();
 
