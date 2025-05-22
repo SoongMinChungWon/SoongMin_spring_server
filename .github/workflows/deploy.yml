@@ -9,22 +9,18 @@ on:
     branches:
       - main
 
-
 jobs:
   deploy-backend:
     runs-on: ubuntu-latest
-
 
     steps:
       - name: ✅ Checkout Spring Code
         uses: actions/checkout@v3
 
       - name: 🔐 application.properties 생성
+        working-directory: ./ssupetition
         run: |
-          cd ssupetition
           mkdir -p src/main/resources
-          # echo "spring.datasource.url=..." >> src/main/resources/application.properties
-          # 필요한 설정을 secrets로부터 채워넣기
           echo "spring.datasource.url=${{ secrets.DB_URL }}" >> src/main/resources/application.properties
           echo "spring.datasource.username=${{ secrets.DB_USERNAME }}" >> src/main/resources/application.properties
           echo "spring.datasource.password=${{ secrets.DB_PASSWORD }}" >> src/main/resources/application.properties
@@ -45,6 +41,7 @@ jobs:
 
       - name: ☕ Gradle Build (jar 생성)
         run: ./gradlew build -x test
+        working-directory: ./ssupetition
 
       - name: 🐳 Docker Hub 로그인
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
@@ -53,8 +50,9 @@ jobs:
         run: |
           IMAGE_TAG=${{ github.sha }}
           echo "IMAGE_TAG=${IMAGE_TAG}" >> $GITHUB_ENV
-          docker build -t ${{ secrets.DOCKER_USERNjAME }}/soogmin:${IMAGE_TAG} .
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/soongmin:${IMAGE_TAG} .
           docker push ${{ secrets.DOCKER_USERNAME }}/soongmin:${IMAGE_TAG}
+        working-directory: ./ssupetition
 
       - name: 🚀 EC2에 SSH 접속 후 backend 재배포
         uses: appleboy/ssh-action@v0.1.6
@@ -65,6 +63,6 @@ jobs:
           script: |
             IMAGE_TAG=${{ github.sha }}
             cd ~/my-app
-            sed -i "s|image: .*/backend:.*|image: ${{ secrets.DOCKER_USERNAME }}/backend:${IMAGE_TAG}|" docker-compose.yml
+            sed -i "s|image: .*/backend:.*|image: ${{ secrets.DOCKER_USERNAME }}/soongmin:${IMAGE_TAG}|" docker-compose.yml
             docker compose pull backend
             docker compose up -d backend
