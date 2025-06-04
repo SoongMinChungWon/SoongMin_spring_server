@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/SoongMin_spring_server.iml" filepath="$PROJECT_DIR$/.idea/SoongMin_spring_server.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/ssupetition.main.iml" filepath="$PROJECT_DIR$/.idea/modules/ssupetition.main.iml" />
     </modules>
   </component>
 </project>

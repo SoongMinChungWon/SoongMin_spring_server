@@ -35,6 +35,13 @@ jobs:
           echo "spring.mail.properties.mail.smtp.timeout=5000" >> src/main/resources/application.properties
           echo "spring.mail.properties.mail.smtp.writetimeout=5000" >> src/main/resources/application.properties
           echo "spring.mail.properties.mail.smtp.ssl.protocols=TLSv1.2" >> src/main/resources/application.properties
+          echo "cloud.aws.s3.bucket=${{ secrets.S3_BUCKET_NAME }}" >> src/main/resources/application.properties
+          echo "cloud.aws.region.static=${{ secrets.S3_BUCKET_REGION }}" >> src/main/resources/application.properties
+          echo "cloud.aws.credentials.access-key=${{ secrets.AWS_ACCESS_KEY_ID }}" >> src/main/resources/application.properties
+          echo "cloud.aws.credentials.secret-key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> src/main/resources/application.properties
+          echo "openai.api.key=${{ secrets.OPEN_API_KEY }}" >> src/main/resources/application.properties
+          echo "openai.embedding.model=${{ secrets.OPEN_MODEL }}" >> src/main/resources/application.properties
+          echo "app.domain=${{ secrets.APP_DOMAIN }}" >> src/main/resources/application.properties
 
       - name: ☕ Gradle Build (jar 생성)
         run: ./gradlew build -x test

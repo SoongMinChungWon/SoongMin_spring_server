@@ -462,8 +462,8 @@ public class PostService {
         List<Type> targetTypes = Arrays.asList(Type.state3, Type.state4);
         List<Post> posts = postRepository.findByUserIdAndPostTypeInOrderByUpdateAtDesc(userId, targetTypes);
         return posts.stream()
-                .map(this::convertToDto)
-                .collect(Collectors.toList());
+            .map(this::convertToDto)
+            .collect(Collectors.toList());
     }
 
 
