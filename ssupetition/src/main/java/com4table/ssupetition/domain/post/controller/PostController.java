@@ -88,7 +88,7 @@ public class PostController {
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(description = "postId와 userId를 path value로 입력받아서 동의하는 게시글을 추가")
+    @Operation(description = "postId와 userId를 path value로 입력받아서 동의하기")
     @PostMapping("/{postId}/agree/{userId}")
     public ResponseEntity<PostResponse.AllListDTO> addPostAgree(@PathVariable(name = "postId") Long postId, @PathVariable(name = "userId") Long userId) {
         PostResponse.AllListDTO allListDTO = postService.addPostAgree(postId, userId);
@@ -98,7 +98,7 @@ public class PostController {
         return ResponseEntity.ok(allListDTO);
     }
 
-    @Operation(description = "postId와 userId를 path value로 입력받아서 비동의하는 게시글을 추가")
+    @Operation(description = "postId와 userId를 path value로 입력받아서 비동의하기")
     @PostMapping("/{postId}/disagree/{userId}")
     public ResponseEntity<PostResponse.AllListDTO> addPostDisagree(@PathVariable(name = "postId") Long postId, @PathVariable(name = "userId") Long userId) {
         PostResponse.AllListDTO allListDTO = postService.addPostDisagree(postId, userId);
