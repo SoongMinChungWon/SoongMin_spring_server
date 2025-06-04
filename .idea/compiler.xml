@@ -2,6 +2,7 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <annotationProcessing>
+      <profile default="true" name="Default" enabled="true" />
       <profile name="Gradle Imported" enabled="true">
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
@@ -10,10 +11,12 @@
         <module name="ssupetition.main" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
-      <module name="com4table.ssupetition" target="17" />
-      <module name="com4table.ssupetition.main" target="17" />
-      <module name="com4table.ssupetition.test" target="17" />
-    </bytecodeTargetLevel>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="ssupetition" options="-parameters" />
+      <module name="ssupetition.main" options="-parameters" />
+      <module name="ssupetition.test" options="-parameters" />
+    </option>
   </component>
 </project>
