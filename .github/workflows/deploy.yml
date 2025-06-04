@@ -48,15 +48,20 @@ jobs:
         working-directory: ./ssupetition
 
       - name: 🐳 Docker Hub 로그인
-        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: 📦 Docker 이미지 Build & Push with Git SHA Tag
-        run: |
-          IMAGE_TAG=${{ github.sha }}
-          echo "IMAGE_TAG=${IMAGE_TAG}" >> $GITHUB_ENV
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/soongmin:latest .
-          docker push ${{ secrets.DOCKER_USERNAME }}/soongmin:latest
-        working-directory: ./ssupetition
+      - name: 📦 Build & Push Docker image (with retries and cache)
+        uses: docker/build-push-action@v5
+        with:
+          context: ./ssupetition
+          file: ./ssupetition/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/soongmin:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: 🚀 EC2에 SSH 접속 후 backend 재배포
         uses: appleboy/ssh-action@v0.1.6
@@ -65,7 +70,5 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_KEY }}
           script: |
-            IMAGE_TAG=${{ github.sha }}
-            cd ~/my-app
             docker compose pull backend
             docker compose up -d backend
