@@ -13,8 +13,4 @@ public class OpenAiConfig {
 
     @Value("${openai.embedding.model}")
     private String embeddingModel;
-
-    @Value("${app.domain}")
-    private String domain;
-
 }
