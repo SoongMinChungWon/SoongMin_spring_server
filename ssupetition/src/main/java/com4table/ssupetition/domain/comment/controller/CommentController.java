@@ -27,8 +27,8 @@ public class CommentController {
         return ResponseEntity.ok(commentResponse);
     }
 
-    @Operation(description = "")
-    @DeleteMapping("댓글 Id를 입력 받아서 댓글 삭제")
+    @Operation(description = "댓글 Id를 입력 받아서 댓글 삭제")
+    @DeleteMapping("/delete/{commentId}")
     public ResponseEntity<Void> removeComment(@PathVariable(name = "commentId") Long commentId) {
         commentService.removeComment(commentId);
         return ResponseEntity.noContent().build();
