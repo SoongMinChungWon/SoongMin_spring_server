@@ -44,6 +44,10 @@ public class Post extends BaseTimeEntity {
 
     private Long disagree;
 
+    private String imageUrl;
+
+
+
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<EmbeddingValue> embedding;
 

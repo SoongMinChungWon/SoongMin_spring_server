@@ -55,6 +55,7 @@ public enum BaseResponseStatus {
     UNABLE_TO_SEND_EMAIL(false, 2103, "이메일 전송에 실패하였습니다."),
     NOT_EQUAL_CERTIFICATION_NUM(false, 2104, "인증번호가 일치하지 않습니다."),
 
+    UPLOAD_FAIL(false,404,"업로드 실패"),
 
 
 
