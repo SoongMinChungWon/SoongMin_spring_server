@@ -22,6 +22,7 @@ public class PostRequest {
         private String content;
         private String categoryId;
         private String typeId;
+        private String imageUrl;
 
         public Post toEntity(User user) {
             return Post.builder()
@@ -33,6 +34,7 @@ public class PostRequest {
                     .disagree(0L)
                     .title(title)
                     .content(content)
+                    .imageUrl(imageUrl)
                     .build();
         }
     }
