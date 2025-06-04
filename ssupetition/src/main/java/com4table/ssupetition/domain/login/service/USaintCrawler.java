@@ -84,7 +84,7 @@ public class USaintCrawler {
 
     public Boolean userCheck(String id, String password) {
         // WebDriver 설정
-        System.setProperty("webdriver.chrome.driver", "C:\\Users\\gwanr\\Downloads\\chromedriver-win64\\chromedriver-win64\\chromedriver.exe"); // ChromeDriver 경로 설정
+        System.setProperty("webdriver.chrome.driver", System.getenv("CHROMEDRIVER_PATH")); // ChromeDriver 경로 설정
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--headless"); // 헤드리스 모드로 실행
         WebDriver driver = new ChromeDriver(options);
