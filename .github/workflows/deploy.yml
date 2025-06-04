@@ -69,5 +69,6 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_KEY }}
           script: |
+            cd ~/my-app
             docker compose pull backend
             docker compose up -d backend
