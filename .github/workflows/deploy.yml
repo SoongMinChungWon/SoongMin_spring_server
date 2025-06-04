@@ -53,15 +53,14 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: 📦 Build & Push Docker image (with retries and cache)
+      - name: 📦 Build & Push Docker image (safe version, no cache)
         uses: docker/build-push-action@v5
         with:
           context: ./ssupetition
           file: ./ssupetition/Dockerfile
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/soongmin:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+
 
       - name: 🚀 EC2에 SSH 접속 후 backend 재배포
         uses: appleboy/ssh-action@v0.1.6
