@@ -27,6 +27,7 @@ public class PostResponse {
         private Long agree;
         private Long disagree;
         private LocalDateTime createdAt;
+        private String imageUrl;
 
 
         public AllListDTO(Post post) {
@@ -40,6 +41,7 @@ public class PostResponse {
             this.agree = post.getAgree();
             this.disagree = post.getDisagree();
             this.createdAt = post.getCreatedAt();
+            this.imageUrl = post.getImageUrl();
         }
     }
     @Data
@@ -94,6 +96,7 @@ public class PostResponse {
         private Long disagree;
         private LocalDateTime createdAt;
         private String answer;
+
 
 
         public PostAnswerDTO(Post post, PostAnswer postAnswer) {
