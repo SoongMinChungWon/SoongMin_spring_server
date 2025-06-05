@@ -68,7 +68,7 @@ public class QdrantService {
             HttpRequest httpRequest = HttpRequest.newBuilder()
                     .uri(URI.create(QDRANT_URL + "/collections/" + COLLECTION_NAME + "/points?wait=true"))
                     .header("Content-Type", "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofString(requestBody.toString()))
+                    .PUT(HttpRequest.BodyPublishers.ofString(requestBody.toString()))
                     .build();
 
             HttpResponse<String> response = HttpClient.newHttpClient().send(httpRequest, HttpResponse.BodyHandlers.ofString());
