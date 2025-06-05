@@ -30,7 +30,13 @@ public class QdrantService {
                     .build();
 
             HttpResponse<String> response = HttpClient.newHttpClient().send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            JSONArray hits = new JSONObject(response.body()).getJSONArray("result");
+            JSONObject body = new JSONObject(response.body());
+
+            if (!body.has("result")) {
+                throw new RuntimeException("Qdrant 응답에 result 없음: " + response.body());
+            }
+
+            JSONArray hits = body.getJSONArray("result");
 
             List<String> ids = new ArrayList<>();
             for (int i = 0; i < hits.length(); i++) {
