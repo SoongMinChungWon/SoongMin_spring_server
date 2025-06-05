@@ -40,7 +40,8 @@ public class QdrantService {
 
             List<String> ids = new ArrayList<>();
             for (int i = 0; i < hits.length(); i++) {
-                ids.add(hits.getJSONObject(i).getString("id")); // 또는 payload 내부에서 추출
+                String idString = hits.getJSONObject(i).get("id").toString();
+                ids.add(idString);
             }
 
             return ids;
