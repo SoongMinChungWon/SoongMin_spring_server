@@ -24,7 +24,7 @@ public class QdrantService {
                     .put("limit", 5);
 
             HttpRequest httpRequest = HttpRequest.newBuilder()
-                    .uri(URI.create("http://localhost:6333/collections/posts/points/search"))
+                    .uri(URI.create("http://52.78.204.183:6333/collections/posts/points/search"))
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(request.toString()))
                     .build();
