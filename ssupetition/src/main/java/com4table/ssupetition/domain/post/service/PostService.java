@@ -16,6 +16,8 @@ import com4table.ssupetition.domain.post.enums.Category;
 import com4table.ssupetition.domain.post.enums.Type;
 import com4table.ssupetition.domain.post.repository.EmbeddingValueRepository;
 import com4table.ssupetition.domain.post.repository.PostRepository;
+import com4table.ssupetition.domain.searching.service.EmbeddingService;
+import com4table.ssupetition.domain.searching.service.QdrantService;
 import com4table.ssupetition.domain.user.domain.User;
 import com4table.ssupetition.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -42,6 +44,10 @@ public class PostService {
     private final AgreePostRepository agreePostRepository;
     private final MailService emailService;
     private final WritePostRepository writePostRepository;
+    // --- 신규로 추가한 의존성: EmbeddingService, QdrantService
+    private final EmbeddingService embeddingService;
+    private final QdrantService qdrantService;
+
 
     public Post addPost(Long userId, PostRequest.AddDTO addDTO) {
         User user = userRepository.findById(userId)
@@ -90,7 +96,20 @@ public class PostService {
 //            embeddings.add(new EmbeddingValue(null, post, value));
 //        }
 //        embeddingValueRepository.saveAll(embeddings);
+        // 3) “title + content” 또는 “content만” 임베딩
+        //    (여기선 content만 예시)
+        String textToEmbed = savedPost.getContent();
+        List<Double> embeddingList = embeddingService.getEmbedding(textToEmbed);
 
+        // 4) Qdrant에 upsert: postId와 벡터
+        try {
+            qdrantService.upsertPoint(savedPost.getPostId(), embeddingList);
+        } catch (Exception e) {
+            // Qdrant upsert 실패 시 로그 남기되, 서비스 흐름을 계속할지 여부는 정책에 따라 결정
+            log.error("Qdrant upsert 중 오류 발생 (postId={}): {}", savedPost.getPostId(), e.getMessage());
+            // 만약 Qdrant 실패 시 롤백하고 싶다면 예외를 던져도 됩니다.
+            // throw new RuntimeException("Qdrant upsert 실패", e);
+        }
 
         WritePost writePost = WritePost.builder()
                 .user(user)
