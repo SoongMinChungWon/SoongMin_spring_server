@@ -12,6 +12,7 @@ import com4table.ssupetition.domain.post.domain.Post;
 import com4table.ssupetition.domain.post.domain.PostAnswer;
 import com4table.ssupetition.domain.post.dto.PostRequest;
 import com4table.ssupetition.domain.post.dto.PostResponse;
+import com4table.ssupetition.domain.post.dto.ResponseDto;
 import com4table.ssupetition.domain.post.enums.Category;
 import com4table.ssupetition.domain.post.enums.Type;
 import com4table.ssupetition.domain.post.repository.EmbeddingValueRepository;
@@ -218,13 +219,14 @@ public class PostService {
         postRepository.deleteById(postId);
     }
 
-    public PostResponse.AllListDTO addPostAgree(Long postId, Long userId) {
+    public ResponseDto addPostAgree(Long postId, Long userId) {
         Post post = postRepository.findById(postId).orElseThrow(() -> new RuntimeException("Post not found"));
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
 
-        if(checkParticipate(postId, userId, post, user, false)){
+        if(!checkParticipate(postId, userId, post, user, true)){
             return null;
         }
+
 
         post.setAgree(post.getAgree() + 1);
         post.setParticipants(post.getParticipants()+1);
@@ -236,15 +238,17 @@ public class PostService {
         log.info("sendemail:{}",sendEmail);
         checkChangeType(postId, sendEmail);
         Post savedPost = postRepository.save(post);
-        return new PostResponse.AllListDTO(savedPost);
+
+        return new ResponseDto(200,"동의 되었습니다.");
     }
 
+
     @Transactional
-    public PostResponse.AllListDTO addPostDisagree(Long postId,Long userId) {
+    public ResponseDto addPostDisagree(Long postId,Long userId) {
         Post post = postRepository.findById(postId).orElseThrow(() -> new RuntimeException("Post not found"));
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
 
-        if(checkParticipate(postId, userId, post, user, false)){
+        if(!checkParticipate(postId, userId, post, user, false)){
             return null;
         }
         post.setDisagree(post.getDisagree() + 1);
@@ -252,7 +256,7 @@ public class PostService {
         checkChangeType(postId, false);
         Post savedPost = postRepository.save(post);
         log.info(post.toString());
-        return new PostResponse.AllListDTO(savedPost);
+        return new ResponseDto(200,"비동의 되었습니다.");
     }
 
     public void checkChangeType(Long postId, boolean sendEmail){
@@ -272,7 +276,7 @@ public class PostService {
         Optional<AgreePost> existingLike = agreePostRepository.findByPost_PostIdAndUser_UserId(postId, userId);
 
         if (existingLike.isPresent()) {
-            return true;
+            throw new IllegalArgumentException("이미 추천 또는 비추천을 누른 게시글입니다.");
         }
 
         AgreePost postLike = AgreePost.builder()
@@ -282,7 +286,7 @@ public class PostService {
                 .build();
         agreePostRepository.save(postLike);
 
-        return false;
+        return true;
     }
 
     public boolean checkAgreeCountAndSendEmail(float agreeRate, Long participate, String title, String content, Long postId, Type type) {

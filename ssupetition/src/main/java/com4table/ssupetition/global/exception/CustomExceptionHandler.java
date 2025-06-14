@@ -23,6 +23,16 @@ public class CustomExceptionHandler {
     }
 
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<BaseResponse<?>> handleIllegalException(IllegalArgumentException e) {
+        return  ResponseEntity.status(HttpStatus.BAD_REQUEST).body(BaseResponse.builder()
+            .isSuccess(false)
+            .code(400)
+            .message(e.getMessage())
+            .build());
+    }
+
+
 //    @ExceptionHandler(Exception.class)
 //    public ResponseEntity<BaseResponse<Object>> handleGeneralException(Exception e) {
 //        HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
