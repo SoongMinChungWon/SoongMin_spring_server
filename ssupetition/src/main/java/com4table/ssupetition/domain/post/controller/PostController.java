@@ -3,6 +3,7 @@ package com4table.ssupetition.domain.post.controller;
 import com4table.ssupetition.domain.post.domain.Post;
 import com4table.ssupetition.domain.post.dto.PostRequest;
 import com4table.ssupetition.domain.post.dto.PostResponse;
+import com4table.ssupetition.domain.post.dto.ResponseDto;
 import com4table.ssupetition.domain.post.service.PostAnswerService;
 import com4table.ssupetition.domain.post.service.PostService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -90,22 +91,14 @@ public class PostController {
 
     @Operation(description = "postId와 userId를 path value로 입력받아서 동의하기")
     @PostMapping("/{postId}/agree/{userId}")
-    public ResponseEntity<PostResponse.AllListDTO> addPostAgree(@PathVariable(name = "postId") Long postId, @PathVariable(name = "userId") Long userId) {
-        PostResponse.AllListDTO allListDTO = postService.addPostAgree(postId, userId);
-        if(allListDTO==null){
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-        }
-        return ResponseEntity.ok(allListDTO);
+    public ResponseEntity<ResponseDto> addPostAgree(@PathVariable(name = "postId") Long postId, @PathVariable(name = "userId") Long userId) {
+        return ResponseEntity.ok(postService.addPostAgree(postId,userId));
     }
 
     @Operation(description = "postId와 userId를 path value로 입력받아서 비동의하기")
     @PostMapping("/{postId}/disagree/{userId}")
-    public ResponseEntity<PostResponse.AllListDTO> addPostDisagree(@PathVariable(name = "postId") Long postId, @PathVariable(name = "userId") Long userId) {
-        PostResponse.AllListDTO allListDTO = postService.addPostDisagree(postId, userId);
-        if(allListDTO==null){
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-        }
-        return ResponseEntity.ok(allListDTO);
+    public ResponseEntity<ResponseDto> addPostDisagree(@PathVariable(name = "postId") Long postId, @PathVariable(name = "userId") Long userId) {
+        return ResponseEntity.ok(postService.addPostDisagree(postId,userId));
     }
 
     @Operation(description = "모든 게시글 가져오기")
