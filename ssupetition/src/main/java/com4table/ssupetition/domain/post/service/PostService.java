@@ -100,7 +100,7 @@ public class PostService {
         // 3) “title + content” 또는 “content만” 임베딩
         //    (여기선 content만 예시)
         // title 과 content 를 합쳐서 한 번에 임베딩
-        String textToEmbed = savedPost.getTitle() + "\n" + savedPost.getContent();
+        String textToEmbed = savedPost.getContent();
         List<Double> embeddingList = embeddingService.getEmbedding(textToEmbed);
 
         // 4) Qdrant에 upsert: postId와 벡터
