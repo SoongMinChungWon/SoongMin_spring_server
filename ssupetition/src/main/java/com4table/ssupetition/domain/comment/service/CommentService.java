@@ -1,6 +1,7 @@
 package com4table.ssupetition.domain.comment.service;
 
 import com4table.ssupetition.domain.comment.domain.Comment;
+import com4table.ssupetition.domain.comment.dto.CommentDto;
 import com4table.ssupetition.domain.comment.dto.CommentRequest;
 import com4table.ssupetition.domain.comment.dto.CommentResponse;
 import com4table.ssupetition.domain.comment.repository.CommentRepository;
@@ -27,13 +28,18 @@ public class CommentService {
     private final UserRepository userRepository;
     private final CommentPostRepository commentPostRepository;
 
-    public Comment addComment(Long userId, Long postId, CommentRequest.AddDTO addDTO) {
+    public Comment addComment(Long userId, Long postId, CommentDto commentDto) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid user ID: " + userId));
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid post ID: " + postId));
 
-        Comment comment = addDTO.toEntity(user, post);
+        Comment comment = Comment.builder()
+            .postId(post)
+            .userId(user)
+            .commentContent(commentDto.content())
+            .build();
+
         Comment savedComment = commentRepository.save(comment);
         // CommentPost 엔티티가 있는지 확인하고 없으면 추가
         boolean exists = commentPostRepository.existsByUserAndPost(user, post);

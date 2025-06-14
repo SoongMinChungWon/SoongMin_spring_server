@@ -1,6 +1,7 @@
 package com4table.ssupetition.domain.comment.controller;
 
 import com4table.ssupetition.domain.comment.domain.Comment;
+import com4table.ssupetition.domain.comment.dto.CommentDto;
 import com4table.ssupetition.domain.comment.dto.CommentRequest;
 import com4table.ssupetition.domain.comment.dto.CommentResponse;
 import com4table.ssupetition.domain.comment.service.CommentService;
@@ -22,8 +23,9 @@ public class CommentController {
 
     @Operation(description = "게시글 ID와 유저 ID를 path value로 넣어서 댓글 저장")
     @PostMapping("/add/{postId}/{userId}")
-    public ResponseEntity<Comment> addComment(@PathVariable(name = "userId") Long userId, @PathVariable(name = "postId") Long postId, @RequestBody CommentRequest.AddDTO addDTO) {
-        Comment commentResponse = commentService.addComment(userId, postId, addDTO);
+    public ResponseEntity<Comment> addComment(@PathVariable(name = "userId") Long userId, @PathVariable(name = "postId") Long postId, @RequestBody
+        CommentDto commentDto) {
+        Comment commentResponse = commentService.addComment(userId, postId, commentDto);
         return ResponseEntity.ok(commentResponse);
     }
 

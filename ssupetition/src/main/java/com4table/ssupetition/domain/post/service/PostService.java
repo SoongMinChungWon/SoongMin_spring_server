@@ -239,6 +239,7 @@ public class PostService {
         return new PostResponse.AllListDTO(savedPost);
     }
 
+    @Transactional
     public PostResponse.AllListDTO addPostDisagree(Long postId,Long userId) {
         Post post = postRepository.findById(postId).orElseThrow(() -> new RuntimeException("Post not found"));
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
@@ -250,6 +251,7 @@ public class PostService {
         post.setParticipants(post.getParticipants()+1);
         checkChangeType(postId, false);
         Post savedPost = postRepository.save(post);
+        log.info(post.toString());
         return new PostResponse.AllListDTO(savedPost);
     }
 
