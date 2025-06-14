@@ -4,6 +4,7 @@ import com4table.ssupetition.domain.comment.domain.Comment;
 import com4table.ssupetition.domain.comment.dto.CommentDto;
 import com4table.ssupetition.domain.comment.dto.CommentRequest;
 import com4table.ssupetition.domain.comment.dto.CommentResponse;
+import com4table.ssupetition.domain.comment.dto.ResponseDto;
 import com4table.ssupetition.domain.comment.service.CommentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -23,10 +24,10 @@ public class CommentController {
 
     @Operation(description = "게시글 ID와 유저 ID를 path value로 넣어서 댓글 저장")
     @PostMapping("/add/{postId}/{userId}")
-    public ResponseEntity<Comment> addComment(@PathVariable(name = "userId") Long userId, @PathVariable(name = "postId") Long postId, @RequestBody
+    public ResponseEntity<ResponseDto> addComment(@PathVariable(name = "userId") Long userId, @PathVariable(name = "postId") Long postId, @RequestBody
         CommentDto commentDto) {
         Comment commentResponse = commentService.addComment(userId, postId, commentDto);
-        return ResponseEntity.ok(commentResponse);
+        return ResponseEntity.ok(new ResponseDto(201,"댓글이 작성되었습니다."));
     }
 
     @Operation(description = "댓글 Id를 입력 받아서 댓글 삭제")
