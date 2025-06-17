@@ -28,14 +28,15 @@ RUN wget -qO - https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor
     rm -rf /var/lib/apt/lists/*
 
 
-# 4) ChromeDriver 설치 (Chrome 137.0.7151.70에 맞는 버전)
+# 4. ChromeDriver 설치 (137.0.7151.70)
 ARG CHROME_DRIVER_VERSION=137.0.7151.70
-
 RUN wget -O /tmp/chromedriver.zip \
     "https://storage.googleapis.com/chrome-for-testing-public/${CHROME_DRIVER_VERSION}/linux64/chromedriver-linux64.zip" && \
-    unzip /tmp/chromedriver.zip -d /usr/local/bin && \
-    rm /tmp/chromedriver.zip && \
-    chmod +x /usr/local/bin/chromedriver
+    unzip /tmp/chromedriver.zip -d /tmp && \
+    mv /tmp/chromedriver-linux64/chromedriver /usr/local/bin/chromedriver && \
+    chmod +x /usr/local/bin/chromedriver && \
+    rm -rf /tmp/chromedriver.zip /tmp/chromedriver-linux64
+
 
 
 # 5) 애플리케이션 JAR 복사
