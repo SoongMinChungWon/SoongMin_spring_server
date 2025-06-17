@@ -25,7 +25,7 @@ public class USaintCrawler {
     public LoginResult loginAndGetInfo(String id, String password) {
         // WebDriver 설정
         //String driverPath = System.getProperty("user.dir") + "/drivers/chromedriver-mac-arm64/chromedriver";
-        System.setProperty("webdriver.chrome.driver", System.getenv("CHROMEDRIVER_PATH"));
+        // System.setProperty("webdriver.chrome.driver", System.getenv("CHROMEDRIVER_PATH"));
         ChromeOptions options = new ChromeOptions();
         options.setBinary("/usr/bin/google-chrome"); // ✅ Chrome 실행 경로 직접 지정
         options.addArguments("--headless=new"); // 최신 headless 모드
@@ -86,7 +86,7 @@ public class USaintCrawler {
 
     public Boolean userCheck(String id, String password) {
         // WebDriver 설정
-        System.setProperty("webdriver.chrome.driver", System.getenv("CHROMEDRIVER_PATH")); // ChromeDriver 경로 설정
+        // System.setProperty("webdriver.chrome.driver", System.getenv("CHROMEDRIVER_PATH")); // ChromeDriver 경로 설정
         ChromeOptions options = new ChromeOptions();
         options.setBinary("/usr/bin/google-chrome"); // ✅ Chrome 실행 경로 직접 지정
         options.addArguments("--headless=new"); // 최신 headless 모드
