@@ -34,7 +34,7 @@ public class LoginService {
                 user = User.builder()
                         .loginId(userInfo.getLoginId())
                         .major(userInfo.getUserMajor())
-                        .name(user.getName())
+                        .name(userInfo.getUserName())
                         .build();
 //                user = User.builder()
 //                        .loginId(userInfo.getLoginId())
