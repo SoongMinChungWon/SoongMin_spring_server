@@ -1,5 +1,7 @@
 package com4table.ssupetition.domain.post.service;
 
+import static com4table.ssupetition.domain.post.dto.gpt.PetitionDtos.*;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com4table.ssupetition.domain.mail.service.MailService;
 import com4table.ssupetition.domain.mypage.domain.AgreePost;
@@ -13,6 +15,9 @@ import com4table.ssupetition.domain.post.domain.PostAnswer;
 import com4table.ssupetition.domain.post.dto.PostRequest;
 import com4table.ssupetition.domain.post.dto.PostResponse;
 import com4table.ssupetition.domain.post.dto.ResponseDto;
+import com4table.ssupetition.domain.post.dto.gpt.ChatCompletionRequest;
+import com4table.ssupetition.domain.post.dto.gpt.ChatCompletionResponse;
+import com4table.ssupetition.domain.post.dto.gpt.PetitionDtos;
 import com4table.ssupetition.domain.post.enums.Category;
 import com4table.ssupetition.domain.post.enums.Type;
 import com4table.ssupetition.domain.post.repository.EmbeddingValueRepository;
@@ -24,10 +29,14 @@ import com4table.ssupetition.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.java.Log;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -48,6 +57,9 @@ public class PostService {
     // --- 신규로 추가한 의존성: EmbeddingService, QdrantService
     private final EmbeddingService embeddingService;
     private final QdrantService qdrantService;
+
+    private final WebClient openAiWebClient;
+    private static final String MODEL = "gpt-4o-mini";
 
 
     public Post addPost(Long userId, PostRequest.AddDTO addDTO) {
@@ -122,29 +134,13 @@ public class PostService {
         return savedPost;
     }
 
-    public List<PostResponse.AllListDTO> searchPosts( String keyword) {
+    public Page<PostResponse.AllListDTO> searchPosts( String keyword, Pageable pageable) {
+        Page<Post> posts = postRepository.findByTitleContainingOrContentContaining(keyword, keyword, pageable);
 
-        List<Post> posts = postRepository.findAll();
-
-        // 제목 또는 내용에 키워드가 포함된 게시물 필터링
-        List<Post> filteredPosts = posts.stream()
-                .peek(post -> log.info("원본 포스트 제목: {}, 내용: {}", post.getTitle(), post.getContent()))  // 원본 포스트 로그
-                .filter(post -> {
-                    boolean matches = post.getTitle().contains(keyword) || post.getContent().contains(keyword);
-                    if (matches) {
-                        log.info("필터링된 포스트 제목: {}, 내용: {}", post.getTitle(), post.getContent());
-                    }
-                    return matches;
-                })
-                .collect(Collectors.toList());
-
-        // DTO로 변환하여 반환
-        return filteredPosts.stream()
-                .map(post -> {
-                    log.info("DTO 변환 포스트 제목: {}, 내용: {}", post.getTitle(), post.getContent());
-                    return convertToDto(post);
-                })
-                .collect(Collectors.toList());
+        return posts.map(post -> {
+            log.info("검색된 포스트 제목: {}, 내용: {}", post.getTitle(), post.getContent());
+            return convertToDto(post);
+        });
     }
 
 
@@ -492,6 +488,99 @@ public class PostService {
             .collect(Collectors.toList());
     }
 
+    //필터링해서 결과 가져오기
+    public Page<PostResponse.AllListDTO> getFilterList(String category,Pageable pageable){
+        Page<Post> posts;
+        if(category.equals("all")){
+            posts = postRepository.findAll(pageable);
+        }else {
+            posts = postRepository.findAllByPostCategory(Category.valueOf(category),pageable);
+        }
+        return posts.map(post -> {
+            log.info("검색된 포스트 제목: {}, 내용: {}", post.getTitle(), post.getContent());
+            return convertToDto(post);
+        });
+    }
+
+    public Page<PostResponse.AllListDTO> getCurrentList(Pageable pageable){
+        Page<Post> posts = postRepository.findAll(pageable);
+        return posts.map(this::convertToDto
+        );
+    }
+
+
+
+    public GenerateResponse makeBestSingleVersion(GenerateRequest req) {
+        String systemPrompt = String.join("\n",
+            "너는 '숭민청원' 서비스용 청원문 작성 전문가다.",
+            "목표: 학생 불만을 담당부서가 즉시 이해하고 조치할 수 있게, 간결하고 설득력 있는 '단 하나의 최종안'을 만든다.",
+            "- 출력은 반드시 '제목'과 '본문'만 포함한다. 다른 설명, 리스트, 대안, 선택지는 금지.",
+            "- 사실을 과장하거나 새 사실을 추가하지 말고, 사용자가 준 정보만 명확히 정리한다.",
+            "- 제목: 40자 이내, 핵심키워드 포함, 중복어구 금지.",
+            "- 본문: 600자 이내, 문제상황→근거/영향→요청사항 순서. 비난/감정표현 최소화, 구체적 요청 명시.",
+            "- 카테고리(예: 시설/수업/행정)를 제목 첫머리에 대괄호로 표시한다. 예: [시설] ...",
+            "- 최종 결과는 단 하나의 버전만 제시하고, 불필요한 접두사/접미사/마크다운 없이 텍스트만 출력한다."
+        );
+
+        String userPrompt = """
+                [카테고리]
+                %s
+
+                [제목 초안]
+                %s
+
+                [본문 초안]
+                %s
+
+                위 정보를 기준으로 '단 하나의 최종안'만 작성해줘.
+                """.formatted(
+            nullSafe(req.getCategory()), nullSafe(req.getTitleDraft()), nullSafe(req.getBodyDraft())
+        );
+
+        ChatCompletionRequest request = ChatCompletionRequest.builder()
+            .model(MODEL)
+            .temperature(0.2) // 결정적/일관된 출력
+            .max_tokens(900)
+            .messages(List.of(
+                new ChatCompletionRequest.Message("system", systemPrompt),
+                new ChatCompletionRequest.Message("user", userPrompt)
+            ))
+            .build();
+
+        ChatCompletionResponse res = openAiWebClient.post()
+            .uri("/chat/completions")
+            .bodyValue(request)
+            .retrieve()
+            .bodyToMono(ChatCompletionResponse.class)
+            .block(); // MVC에서는 block() 사용 OK
+
+        if (res == null || res.getChoices() == null || res.getChoices().isEmpty()
+            || res.getChoices().get(0).getMessage() == null) {
+            throw new IllegalStateException("OpenAI 응답이 비어 있습니다.");
+        }
+
+        // 모델 출력은 "제목\n본문" 형태로 오므로 간단 파싱 (규칙을 system에서 강제했기 때문에 안정적)
+        String content = res.getChoices().get(0).getMessage().getContent().trim();
+        String[] lines = content.split("\\r?\\n", 2);
+
+        String title = lines.length > 0 ? lines[0].trim() : "";
+        String body  = lines.length > 1 ? lines[1].trim() : "";
+
+        // 방어적 후처리: 길이 컷팅
+        title = cut(title, 80);
+        body  = cut(body, 2000);
+
+        return new GenerateResponse(title, body);
+    }
+
+    private static String nullSafe(String s) {
+        return s == null ? "" : s;
+    }
+
+    private static String cut(String s, int max) {
+        if (s == null) return "";
+        return s.length() > max ? s.substring(0, max) : s;
+    }
 
 }
 
