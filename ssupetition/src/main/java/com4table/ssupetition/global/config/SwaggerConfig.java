@@ -18,6 +18,7 @@ public class SwaggerConfig {
 			.info(apiInfo());
 	}
 
+
 	private Info apiInfo() {
 		return new Info()
 			.title("Soong API")
