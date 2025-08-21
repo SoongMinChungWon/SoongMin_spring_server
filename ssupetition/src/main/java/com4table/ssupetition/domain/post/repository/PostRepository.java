@@ -4,6 +4,9 @@ import com4table.ssupetition.domain.mypage.domain.CommentPost;
 import com4table.ssupetition.domain.post.domain.Post;
 import com4table.ssupetition.domain.post.enums.Category;
 import com4table.ssupetition.domain.post.enums.Type;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -15,8 +18,9 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 //    List<Post> findByPostType(Long postCategoryId);
     List<Post> findByUser_UserId(Long user);
 
+    Page<Post> findAllByPostCategory(Category postCategory,Pageable pageable);
 
-
+    Page<Post> findByTitleContainingOrContentContaining(String titleKeyword, String contentKeyword, Pageable pageable);
 
     // 최다 동의 순으로 정렬
     @Query("SELECT p FROM Post p ORDER BY p.agree DESC")
