@@ -95,7 +95,6 @@ public class PostController {
 
 
 
-
     @Operation(description = "위의 설명을 보면 존재하는 카테고리에 속하는 게시글들을 제공하는 API")
     @PostMapping("/search/sorted-by-agree/{category}")
     public ResponseEntity<List<PostResponse.AllListDTO>> searchPostsSortedByAgree(
