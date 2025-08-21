@@ -1,14 +1,23 @@
 package com4table.ssupetition.domain.post.controller;
 
+import static com4table.ssupetition.domain.post.dto.gpt.PetitionDtos.*;
+
 import com4table.ssupetition.domain.post.domain.Post;
 import com4table.ssupetition.domain.post.dto.PostRequest;
 import com4table.ssupetition.domain.post.dto.PostResponse;
 import com4table.ssupetition.domain.post.dto.ResponseDto;
+import com4table.ssupetition.domain.post.dto.gpt.PetitionDtos;
 import com4table.ssupetition.domain.post.service.PostAnswerService;
 import com4table.ssupetition.domain.post.service.PostService;
+import com4table.ssupetition.global.exception.BaseResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -37,13 +46,54 @@ public class PostController {
         return ResponseEntity.ok(createdPost);
     }
 
-    //전체 검색
-    @Operation(description = "전체 게시글들 가져오는 API")
-    @PostMapping("/search")
-    public List<PostResponse.AllListDTO> postSearch(@RequestBody Map<String, String> body) {
-        String keyword = body.get("keyword");
-        return postService.searchPosts(keyword);
+    //AI 글 수정
+    @Operation(summary = "최신판", description = "(최신판) 게시글 작성할 때 AI한테 다듬어달라고 요청하는 API")
+    @PostMapping("/ai/body")
+    public BaseResponse<GenerateResponse> summaryAI(@RequestBody GenerateRequest request){
+        return BaseResponse.<GenerateResponse>builder()
+            .code(200)
+            .message("AI가 글을 다듬었습니다.")
+            .isSuccess(true)
+            .data(postService.makeBestSingleVersion(request))
+            .build();
     }
+
+    //전체 검색
+    @Operation(description = "전체 게시글들 가져오는 API-> 모아보기에서 이걸 쓰면 될 듯->키워드 별로 가져오는 거 같음")
+    @PostMapping("/search")
+    public Page<PostResponse.AllListDTO> postSearch(@RequestBody Map<String, String> body , @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable){
+        String keyword = body.get("keyword");
+        return postService.searchPosts(keyword,pageable);
+    }
+
+    //필터링된 검색 결과 가져오기
+    @Operation(summary = "최신판", description = "(최신판) 필터링된 상태로 게시글들을 가져오는 API // FILTER : all(모아보기), event(행사), partnership(제휴), facility(시설), study(교과), report(신고) 뒤에 한국어 괄호 제외하고 넣어주면 됨 ")
+    @GetMapping("/search/{category}")
+    public BaseResponse<Page<PostResponse.AllListDTO>> getListsWithFilter(@PathVariable(name = "category") String category, @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable){
+        return BaseResponse.<Page<PostResponse.AllListDTO>>builder()
+            .isSuccess(true)
+            .message("필터링된 게시글들을 가져왔습니다.")
+            .code(200)
+            .data(postService.getFilterList(category, pageable))
+            .build();
+    }
+
+    //최신 검색
+    @Operation(summary = "최신판", description = "(최신판) 최신 결과 가져오기")
+    @GetMapping("/search/current")
+    public BaseResponse<Page<PostResponse.AllListDTO>> getListsRecent(@PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable){
+        return BaseResponse.<Page<PostResponse.AllListDTO>>builder()
+            .isSuccess(true)
+            .message("최신 게시글들을 가져왔습니다.")
+            .code(200)
+            .data(postService.getCurrentList(pageable))
+            .build();
+    }
+
+    //학교 뉴스 크롤링
+
+
+
 
 
     @Operation(description = "위의 설명을 보면 존재하는 카테고리에 속하는 게시글들을 제공하는 API")
