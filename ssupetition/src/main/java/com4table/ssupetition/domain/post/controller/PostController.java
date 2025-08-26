@@ -152,8 +152,13 @@ public class PostController {
 
     @Operation(description = "모든 게시글 가져오기")
     @GetMapping
-    public List<PostResponse.AllListDTO> getPostList() {
-        return postService.getAllPosts();
+    public BaseResponse<List<PostResponse.AllListDTO>> getPostList() {
+        return BaseResponse.<List<PostResponse.AllListDTO>>builder()
+            .code(200)
+            .data(postService.getAllPosts())
+            .isSuccess(true)
+            .message("모든 게시글 정보를 가져왔습니다.")
+            .build();
     }
 
     @Operation(description = "모든 동의된 게시글 가져오기")

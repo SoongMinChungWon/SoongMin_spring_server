@@ -28,8 +28,7 @@ RUN wget -qO - https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor
     rm -rf /var/lib/apt/lists/*
 
 
-# 4. ChromeDriver 설치 (137.0.7151.70)
-ARG CHROME_DRIVER_VERSION=137.0.7151.70
+ARG CHROME_DRIVER_VERSION=139.0.7258.138
 RUN wget -O /tmp/chromedriver.zip \
     "https://storage.googleapis.com/chrome-for-testing-public/${CHROME_DRIVER_VERSION}/linux64/chromedriver-linux64.zip" && \
     unzip /tmp/chromedriver.zip -d /tmp && \
