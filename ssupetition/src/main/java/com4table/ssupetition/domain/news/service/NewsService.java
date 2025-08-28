@@ -12,6 +12,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.PageLoadStrategy;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -51,9 +52,10 @@ public class NewsService {
 	/** 주요뉴스 크롤링: 1페이지부터 maxPages까지 */
 	public CrawlResult crawlMajorNews(int maxPages) {
 		ChromeOptions options = new ChromeOptions();
-		options.setBinary("/usr/bin/google-chrome"); // Docker 리눅스 기준
+		options.setBinary("/usr/bin/google-chrome");
 		options.addArguments("--headless=new","--no-sandbox","--disable-dev-shm-usage","--window-size=1280,1024");
-		options.setExperimentalOption("pageLoadStrategy", "eager"); // 전체 네트워크 idle까지 안기다림
+
+		options.setPageLoadStrategy(PageLoadStrategy.EAGER);
 
 		WebDriver driver = new ChromeDriver(options);
 
