@@ -420,6 +420,7 @@ public class PostService {
                 .agree(post.getAgree())
                 .disagree(post.getDisagree())
                 .createdAt(post.getCreatedAt())
+                .imageUrl(post.getImageUrl())
                 .build();
     }
 

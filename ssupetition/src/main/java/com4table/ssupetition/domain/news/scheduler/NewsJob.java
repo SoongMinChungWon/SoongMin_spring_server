@@ -14,8 +14,8 @@ public class NewsJob {
 
 	private final NewsService newsService;
 
-	// 1) 30분마다 정기 실행
-	@Scheduled(cron = "0 */30 * * * *", zone = "Asia/Seoul")
+	// 매일 0시 정각 실행
+	@Scheduled(cron = "0 0 0 * * *", zone = "Asia/Seoul")
 	public void crawlMajorNewsJob(){
 		log.info("[NewsJob] scheduled tick"); // 주기 실행 로그
 		runCrawl("scheduled");
