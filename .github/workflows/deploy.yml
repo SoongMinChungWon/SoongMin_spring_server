@@ -21,7 +21,7 @@ jobs:
           echo "spring.datasource.username=${{ secrets.DB_USERNAME }}" >> src/main/resources/application.properties
           echo "spring.datasource.password=${{ secrets.DB_PASSWORD }}" >> src/main/resources/application.properties
           echo "spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver" >> src/main/resources/application.properties
-          echo "spring.jpa.hibernate.ddl-auto=create" >> src/main/resources/application.properties
+          echo "spring.jpa.hibernate.ddl-auto=update" >> src/main/resources/application.properties
           echo "spring.mail.host=smtp.naver.com" >> src/main/resources/application.properties
           echo "spring.mail.port=587" >> src/main/resources/application.properties
           echo "spring.mail.username=${{ secrets.MAIL_USERNAME }}" >> src/main/resources/application.properties
@@ -43,6 +43,8 @@ jobs:
           echo "app.domain=${{ secrets.APP_DOMAIN }}" >> src/main/resources/application.properties
           echo "app.qdrant.collection=posts" >> src/main/resources/application.properties
           echo "mail.to=${{ secrets.MAIL_TO }}" >> src/main/resources/application.properties
+          ehco "spring.servlet.multipart.max-file-size=200MB" >> src/main/resources/application.properties
+          ehco "spring.servlet.multipart.max-request-size=200MB" >> src/main/resources/application.properties
 
       - name: ☕ Gradle Build (jar 생성)
         run: ./gradlew build -x test
