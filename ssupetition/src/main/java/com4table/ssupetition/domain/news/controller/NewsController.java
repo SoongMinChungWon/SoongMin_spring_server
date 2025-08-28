@@ -26,7 +26,7 @@ public class NewsController {
 		return BaseResponse.<NewsService.CrawlResult>builder()
 			.isSuccess(true)
 			.code(200)
-			.data(newsService.crawlMajorNews(10))
+			.data(newsService.crawlMajorNews(3))
 			.message("뉴스 크롤링에 성공하였습니다.")
 			.build();
 	}

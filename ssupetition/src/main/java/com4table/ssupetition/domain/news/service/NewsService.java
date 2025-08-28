@@ -30,15 +30,17 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 public class NewsService {
+
 	private static final String BASE_URL = "https://scatch.ssu.ac.kr/뉴스센터/주요뉴스/";
-	private static final long   DELAY_MS = 500L; // 서버 예절상 딜레이
+	private static final long   DELAY_MS = 500L;
 	private static final Pattern DATE_PAT = Pattern.compile("(\\d{4})년\\s*(\\d{1,2})월\\s*(\\d{1,2})일");
+
+	private final NewsStoreService newsStoreService; // ⬅️ 저장 서비스 주입
 
 	/** 주요뉴스 크롤링: 1페이지부터 maxPages까지 */
 	public CrawlResult crawlMajorNews(int maxPages) {
-		// WebDriver 설정 (USaintCrawler와 동일한 형태 유지)
 		ChromeOptions options = new ChromeOptions();
-		options.setBinary("/usr/bin/google-chrome");
+		options.setBinary("/usr/bin/google-chrome");        // Docker 리눅스 이미지 기준 경로 유지
 		options.addArguments("--headless=new");
 		options.addArguments("--no-sandbox");
 		options.addArguments("--disable-dev-shm-usage");
@@ -64,7 +66,9 @@ public class NewsService {
 						if ((item.getTitle() != null && !item.getTitle().isEmpty())
 							|| (item.getDate() != null && !item.getDate().isEmpty())) {
 							results.add(item);
-							log.info("[OK] {} {}", item.getDate(), item.getTitle());
+							// ⬇️ 여기서 바로 DB 업서트 (URL unique)
+							newsStoreService.upsertByUrl(item);
+							log.info("[OK] {} {} (img={})", item.getDate(), item.getTitle(), item.getImageUrl());
 						} else {
 							log.info("[SKIP] {} (empty)", link);
 						}
@@ -84,33 +88,19 @@ public class NewsService {
 		}
 	}
 
-	/** 목록 페이지에서 상세 링크 뽑기 */
-	private List<String> extractLinksOnList(WebDriver driver, int page) {
-		String url = (page == 1) ? BASE_URL : BASE_URL + "?paged=" + page;
-		log.info("GET {}", url);
-		driver.get(url);
+	/** 목록 페이지에서 상세 링크 뽑기 (현행 유지) */
+	private List<String> extractLinksOnList(WebDriver driver, int page){
 
-		// 앵커 로드 대기
-		new WebDriverWait(driver, Duration.ofSeconds(10))
-			.until(ExpectedConditions.presenceOfElementLocated(
-				By.xpath("//a[contains(@href,'slug=')]")
-			));
+		String url = (page == 1) ? BASE_URL : BASE_URL + "?paged=" + page; log.info("GET {}", url); driver.get(url);
+		new WebDriverWait(driver, Duration.ofSeconds(10)) .until(ExpectedConditions.presenceOfElementLocated( By.xpath("//a[contains(@href,'slug=')]") ));
+		 List<WebElement> anchors = driver.findElements(By.xpath("//a[contains(@href, 'slug=')]"));
+		 List<String> links = anchors.stream() .map(a -> a.getAttribute("href")) .filter(Objects::nonNull) .map(h -> h.split("#")[0]) .filter(h -> h.contains("slug=")) .distinct() .collect(Collectors.toList());
+		 log.info("page={} links={}", page, links.size());
+		 return links;
 
-		// 상세로 가는 링크가 보통 slug= 파라미터를 포함
-		List<WebElement> anchors = driver.findElements(By.xpath("//a[contains(@href, 'slug=')]"));
-		List<String> links = anchors.stream()
-			.map(a -> a.getAttribute("href"))
-			.filter(Objects::nonNull)
-			.map(h -> h.split("#")[0])
-			.filter(h -> h.contains("slug="))
-			.distinct()
-			.collect(Collectors.toList());
-
-		log.info("page={} links={}", page, links.size());
-		return links;
 	}
 
-	/** 상세 페이지 파싱: 제목/날짜/본문/URL */
+	/** 상세 페이지 파싱: 제목/날짜/본문/URL + 대표 이미지 */
 	private NewsItem parseArticle(WebDriver driver, String url) {
 		log.debug("Parse {}", url);
 		driver.get(url);
@@ -122,7 +112,7 @@ public class NewsService {
 			title = Optional.ofNullable(h.getText()).orElse("").trim();
 		} catch (TimeoutException ignored) {}
 
-		// 본문: article p 우선, 없으면 모든 p
+		// 본문: article p 우선, 없으면 모든 p (현행 유지)
 		List<WebElement> paras = driver.findElements(By.cssSelector("article p"));
 		if (paras.isEmpty()) paras = driver.findElements(By.tagName("p"));
 		String content = paras.stream()
@@ -131,7 +121,7 @@ public class NewsService {
 			.filter(s -> !s.isEmpty())
 			.collect(Collectors.joining("\n"));
 
-		// 날짜: 페이지 전체 텍스트에서 yyyy년 m월 d일
+		// 날짜: 페이지 전체 텍스트에서 yyyy년 m월 d일 (현행 유지)
 		String bodyText = driver.findElement(By.tagName("body")).getText();
 		Matcher m = DATE_PAT.matcher(bodyText);
 		String dateStr = "";
@@ -142,38 +132,52 @@ public class NewsService {
 			dateStr = String.format("%04d-%02d-%02d", y, mo, d);
 		}
 
-		return new NewsItem(title, dateStr, url, content);
+		// ⬇️ 대표 이미지 추출(og:image → article img → img)
+		String imageUrl = null;
+		try {
+			List<WebElement> ogImgs = driver.findElements(By.cssSelector("meta[property='og:image']"));
+			if (!ogImgs.isEmpty()) {
+				String c = ogImgs.get(0).getAttribute("content");
+				if (c != null && !c.isBlank()) imageUrl = c.trim();
+			}
+			if (imageUrl == null) {
+				List<WebElement> imgs = driver.findElements(By.cssSelector("article img"));
+				if (imgs.isEmpty()) imgs = driver.findElements(By.tagName("img"));
+				if (!imgs.isEmpty()) {
+					String src = imgs.get(0).getAttribute("src");
+					if (src != null && !src.isBlank()) imageUrl = src.trim();
+				}
+			}
+		} catch (Exception ignored) {}
+
+		return new NewsItem(title, dateStr, url, content, imageUrl);
 	}
 
-	// ====== 결과/아이템 DTO (USaintCrawler의 내부 static 클래스 스타일로 구성) ======
-
+	// ====== DTO ======
 	@Getter
 	public static class NewsItem {
 		private final String title;
 		private final String date;   // yyyy-MM-dd
 		private final String url;
-		private final String content;
+		private final String content;   // (유지)
+		private final String imageUrl;  // (신규)
 
-		public NewsItem(String title, String date, String url, String content) {
+		public NewsItem(String title, String date, String url, String content, String imageUrl) {
 			this.title = title;
 			this.date = date;
 			this.url = url;
 			this.content = content;
+			this.imageUrl = imageUrl;
 		}
 	}
 
-	@Getter
-	@Setter
+	@Getter @Setter
 	public static class CrawlResult {
 		private final boolean success;
 		private final List<NewsItem> items;
 		private final String message;
-
 		public CrawlResult(boolean success, List<NewsItem> items, String message) {
-			this.success = success;
-			this.items = items;
-			this.message = message;
+			this.success = success; this.items = items; this.message = message;
 		}
 	}
-
 }
