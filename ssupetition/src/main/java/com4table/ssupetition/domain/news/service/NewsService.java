@@ -1,4 +1,4 @@
-package com4table.ssupetition.domain.news;
+package com4table.ssupetition.domain.news.service;
 
 import java.time.Duration;
 import java.util.ArrayList;
