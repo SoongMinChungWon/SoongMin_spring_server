@@ -8,4 +8,6 @@ import com4table.ssupetition.domain.news.entitiy.News;
 
 public interface NewsRepository extends JpaRepository<News,Long> {
 	Optional<News> findByUrl(String url);
+
+	boolean existsByUrl(String url);
 }
