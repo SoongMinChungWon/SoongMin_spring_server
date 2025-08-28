@@ -62,9 +62,9 @@ public class PostService {
     private static final String MODEL = "gpt-4o-mini";
 
 
-    public Post addPost(Long userId, PostRequest.AddDTO addDTO) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid user ID: " + userId));
+    public Post addPost( PostRequest.AddDTO addDTO) {
+        User user = userRepository.findById(addDTO.getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid user ID: " + addDTO.getUserId()));
 
         Post post = addDTO.toEntity(user);
         Post savedPost = postRepository.save(post);

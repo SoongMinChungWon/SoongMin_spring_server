@@ -40,9 +40,9 @@ public class PostController {
     private final PostAnswerService postAnswerService;
 
     @Operation(description = "게시글 작성하는 API")
-    @PostMapping("/{userId}")
-    public ResponseEntity<Post> addPost(@RequestBody PostRequest.AddDTO addDTO, @PathVariable(name = "userId") Long userId) {
-        Post createdPost = postService.addPost(userId, addDTO);
+    @PostMapping("")
+    public ResponseEntity<Post> addPost(@RequestBody PostRequest.AddDTO addDTO) {
+        Post createdPost = postService.addPost(addDTO);
         return ResponseEntity.ok(createdPost);
     }
 

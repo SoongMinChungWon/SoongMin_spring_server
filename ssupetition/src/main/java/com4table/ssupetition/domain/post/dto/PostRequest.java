@@ -19,6 +19,7 @@ public class PostRequest {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class AddDTO {
+        private Long userId;
         private String title;
         private String content;
         private String categoryId;
