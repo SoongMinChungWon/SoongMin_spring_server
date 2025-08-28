@@ -43,8 +43,8 @@ jobs:
           echo "app.domain=${{ secrets.APP_DOMAIN }}" >> src/main/resources/application.properties
           echo "app.qdrant.collection=posts" >> src/main/resources/application.properties
           echo "mail.to=${{ secrets.MAIL_TO }}" >> src/main/resources/application.properties
-          ehco "spring.servlet.multipart.max-file-size=200MB" >> src/main/resources/application.properties
-          ehco "spring.servlet.multipart.max-request-size=200MB" >> src/main/resources/application.properties
+          echo "spring.servlet.multipart.max-file-size=200MB" >> src/main/resources/application.properties
+          echo "spring.servlet.multipart.max-request-size=200MB" >> src/main/resources/application.properties
 
       - name: ☕ Gradle Build (jar 생성)
         run: ./gradlew build -x test
