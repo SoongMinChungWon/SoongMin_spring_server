@@ -17,6 +17,7 @@ public class NewsJob {
 	// 1) 30분마다 정기 실행
 	@Scheduled(cron = "0 */30 * * * *", zone = "Asia/Seoul")
 	public void crawlMajorNewsJob(){
+		log.info("[NewsJob] scheduled tick"); // 주기 실행 로그
 		runCrawl("scheduled");
 	}
 
@@ -24,6 +25,7 @@ public class NewsJob {
 	@org.springframework.context.event.EventListener(org.springframework.boot.context.event.ApplicationReadyEvent.class)
 	public void crawlOnceAfterStartup() {
 		// 비동기로 돌리고 싶으면 @Async 붙이거나 별도 executor 사용
+		log.info("[NewsJob] startup tick"); // 시작 1회 로그
 		runCrawl("startup");
 	}
 

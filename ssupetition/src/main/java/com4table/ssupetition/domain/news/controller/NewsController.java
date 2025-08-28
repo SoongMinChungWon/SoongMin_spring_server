@@ -1,11 +1,14 @@
 package com4table.ssupetition.domain.news.controller;
 
+import java.util.Map;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -43,6 +46,12 @@ public class NewsController {
 				.data(newsService.getNews(pageable))
 				.message("뉴스 정보를 가져오는데 성공하였습니다.")
 				.build();
+	}
+
+	@PostMapping("/crawl")
+	public Map<String,Object> crawlNow(){
+		var r = newsService.crawlMajorNews(3);
+		return Map.of("success", r.isSuccess(), "count", r.getItems().size(), "message", r.getMessage());
 	}
 
 }
