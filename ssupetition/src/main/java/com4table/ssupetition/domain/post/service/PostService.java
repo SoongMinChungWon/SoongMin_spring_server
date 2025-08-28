@@ -30,6 +30,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.java.Log;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.*;
@@ -60,7 +61,8 @@ public class PostService {
 
     private final WebClient openAiWebClient;
     private static final String MODEL = "gpt-4o-mini";
-
+    @Value("${mail.to}")
+    private String to;
 
     public Post addPost( PostRequest.AddDTO addDTO) {
         User user = userRepository.findById(addDTO.getUserId())
@@ -289,7 +291,6 @@ public class PostService {
     public boolean checkAgreeCountAndSendEmail(float agreeRate, Long participate, String title, String content, Long postId, Type type) {
         log.info("chk:{},{},{}, participate:{}",participate>=30 ,agreeRate >= 0.7 ,(type==Type.state1||type==Type.state2), participate);
         if (participate>=30 && agreeRate >= 0.7 && (type==Type.state1||type==Type.state2)) {
-            String to = "ssupetition@gmail.com";
             String subject = makeTitleForm(postId, title);
             String text = "이 메일로 답신 부탁드립니다.\n" + content;
             emailService.sendSimpleMessage(to, subject, text);
