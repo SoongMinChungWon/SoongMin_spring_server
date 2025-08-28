@@ -19,8 +19,12 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import com4table.ssupetition.domain.news.dto.NewsDto;
+import com4table.ssupetition.domain.news.repository.NewsRepository;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -35,15 +39,22 @@ public class NewsService {
 	private static final long   DELAY_MS = 500L;
 	private static final Pattern DATE_PAT = Pattern.compile("(\\d{4})년\\s*(\\d{1,2})월\\s*(\\d{1,2})일");
 
-	private final NewsStoreService newsStoreService; // ⬅️ 저장 서비스 주입
+	private final NewsRepository newsRepository;   // ⬅️ 존재 여부 체크에 사용
+	private final NewsStoreService newsStoreService;
+
+	public Page<NewsDto> getNews(Pageable pageable){
+		return newsRepository.findAll(pageable).map(NewsDto::from);
+	}
+
+
 
 	/** 주요뉴스 크롤링: 1페이지부터 maxPages까지 */
 	public CrawlResult crawlMajorNews(int maxPages) {
 		ChromeOptions options = new ChromeOptions();
-		options.setBinary("/usr/bin/google-chrome");        // Docker 리눅스 이미지 기준 경로 유지
-		options.addArguments("--headless=new");
-		options.addArguments("--no-sandbox");
-		options.addArguments("--disable-dev-shm-usage");
+		options.setBinary("/usr/bin/google-chrome"); // Docker 리눅스 기준
+		options.addArguments("--headless=new","--no-sandbox","--disable-dev-shm-usage","--window-size=1280,1024");
+		options.setExperimentalOption("pageLoadStrategy", "eager"); // 전체 네트워크 idle까지 안기다림
+
 		WebDriver driver = new ChromeDriver(options);
 
 		List<NewsItem> results = new ArrayList<>();
@@ -59,15 +70,24 @@ public class NewsService {
 					log.info("No more links at page={}", page);
 					break;
 				}
+
+				boolean reachedKnown = false;
+
 				for (String link : links) {
 					if (!seen.add(link)) continue;
+
+					// ✅ 이미 DB에 있으면 상세 진입 스킵 (속도↑)
+					if (newsRepository.existsByUrl(link)) {
+						reachedKnown = true; // 목록이 최신순이면 나머지도 오래된 글일 확률↑
+						continue;
+					}
+
 					try {
 						NewsItem item = parseArticle(driver, link);
 						if ((item.getTitle() != null && !item.getTitle().isEmpty())
 							|| (item.getDate() != null && !item.getDate().isEmpty())) {
 							results.add(item);
-							// ⬇️ 여기서 바로 DB 업서트 (URL unique)
-							newsStoreService.upsertByUrl(item);
+							newsStoreService.upsertByUrl(item); // URL unique 업서트
 							log.info("[OK] {} {} (img={})", item.getDate(), item.getTitle(), item.getImageUrl());
 						} else {
 							log.info("[SKIP] {} (empty)", link);
@@ -77,6 +97,10 @@ public class NewsService {
 						log.warn("[ERR] {} :: {}", link, e.toString());
 					}
 				}
+
+				// ✅ 최신순 리스트라면, 하나라도 기존 URL을 만나면 더 뒤 페이지는 스킵해도 됨
+				if (reachedKnown) break;
+
 				page++;
 			}
 			return new CrawlResult(true, results, "count=" + results.size());
@@ -88,19 +112,29 @@ public class NewsService {
 		}
 	}
 
-	/** 목록 페이지에서 상세 링크 뽑기 (현행 유지) */
+	/** 목록 페이지에서 상세 링크 뽑기 */
 	private List<String> extractLinksOnList(WebDriver driver, int page){
+		String url = (page == 1) ? BASE_URL : BASE_URL + "?paged=" + page;
+		log.info("GET {}", url);
+		driver.get(url);
 
-		String url = (page == 1) ? BASE_URL : BASE_URL + "?paged=" + page; log.info("GET {}", url); driver.get(url);
-		new WebDriverWait(driver, Duration.ofSeconds(10)) .until(ExpectedConditions.presenceOfElementLocated( By.xpath("//a[contains(@href,'slug=')]") ));
-		 List<WebElement> anchors = driver.findElements(By.xpath("//a[contains(@href, 'slug=')]"));
-		 List<String> links = anchors.stream() .map(a -> a.getAttribute("href")) .filter(Objects::nonNull) .map(h -> h.split("#")[0]) .filter(h -> h.contains("slug=")) .distinct() .collect(Collectors.toList());
-		 log.info("page={} links={}", page, links.size());
-		 return links;
+		new WebDriverWait(driver, Duration.ofSeconds(10))
+			.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//a[contains(@href,'slug=')]")));
 
+		List<WebElement> anchors = driver.findElements(By.xpath("//a[contains(@href, 'slug=')]"));
+		List<String> links = anchors.stream()
+			.map(a -> a.getAttribute("href"))
+			.filter(Objects::nonNull)
+			.map(h -> h.split("#")[0])
+			.filter(h -> h.contains("slug="))
+			.distinct()
+			.collect(Collectors.toList());
+
+		log.info("page={} links={}", page, links.size());
+		return links;
 	}
 
-	/** 상세 페이지 파싱: 제목/날짜/본문/URL + 대표 이미지 */
+	/** 상세 파싱: 제목/날짜/본문/URL + 대표 이미지 */
 	private NewsItem parseArticle(WebDriver driver, String url) {
 		log.debug("Parse {}", url);
 		driver.get(url);
@@ -112,7 +146,6 @@ public class NewsService {
 			title = Optional.ofNullable(h.getText()).orElse("").trim();
 		} catch (TimeoutException ignored) {}
 
-		// 본문: article p 우선, 없으면 모든 p (현행 유지)
 		List<WebElement> paras = driver.findElements(By.cssSelector("article p"));
 		if (paras.isEmpty()) paras = driver.findElements(By.tagName("p"));
 		String content = paras.stream()
@@ -121,7 +154,6 @@ public class NewsService {
 			.filter(s -> !s.isEmpty())
 			.collect(Collectors.joining("\n"));
 
-		// 날짜: 페이지 전체 텍스트에서 yyyy년 m월 d일 (현행 유지)
 		String bodyText = driver.findElement(By.tagName("body")).getText();
 		Matcher m = DATE_PAT.matcher(bodyText);
 		String dateStr = "";
@@ -132,7 +164,6 @@ public class NewsService {
 			dateStr = String.format("%04d-%02d-%02d", y, mo, d);
 		}
 
-		// ⬇️ 대표 이미지 추출(og:image → article img → img)
 		String imageUrl = null;
 		try {
 			List<WebElement> ogImgs = driver.findElements(By.cssSelector("meta[property='og:image']"));
@@ -153,14 +184,14 @@ public class NewsService {
 		return new NewsItem(title, dateStr, url, content, imageUrl);
 	}
 
-	// ====== DTO ======
+	// ===== DTO =====
 	@Getter
 	public static class NewsItem {
 		private final String title;
-		private final String date;   // yyyy-MM-dd
+		private final String date;     // yyyy-MM-dd
 		private final String url;
-		private final String content;   // (유지)
-		private final String imageUrl;  // (신규)
+		private final String content;  // 원문
+		private final String imageUrl; // 대표 이미지
 
 		public NewsItem(String title, String date, String url, String content, String imageUrl) {
 			this.title = title;
@@ -181,3 +212,5 @@ public class NewsService {
 		}
 	}
 }
+
+
