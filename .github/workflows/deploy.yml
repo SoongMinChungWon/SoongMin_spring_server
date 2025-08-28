@@ -1,8 +1,7 @@
 name: Deploy Spring Backend
 
 on:
-  pull_request:
-    types: [closed]
+  push:
     branches:
       - main
 
