@@ -104,19 +104,43 @@ public class MailService {
 
 
     private String extractContent(Message message) throws IOException, MessagingException {
+        String fullContent = "";
+
         if (message.isMimeType("text/plain")) {
             log.info("1");
-            return message.getContent().toString();
+            fullContent = message.getContent().toString();
         } else if (message.isMimeType("text/html")) {
             log.info("2");
-            return message.getContent().toString(); // HTML을 텍스트로 변환할 필요가 있을 수 있음
+            fullContent = message.getContent().toString();
         } else if (message.getContent() instanceof MimeMultipart) {
             MimeMultipart multipart = (MimeMultipart) message.getContent();
             log.info("3");
-            return getTextFromMimeMultipart(multipart);
+            fullContent = getTextFromMimeMultipart(multipart);
         }
-        return "";
+
+        // 답장 내용만 추출 (원본 메일 제거)
+        return extractOnlyReplyContent(fullContent);
     }
+
+    private String extractOnlyReplyContent(String content) {
+        String[] lines = content.split("\n");
+        StringBuilder reply = new StringBuilder();
+
+        for (String line : lines) {
+            // Gmail/Outlook 답장 패턴 감지
+            if (line.trim().startsWith("On ") && line.contains("wrote:")) {
+                break;
+            }
+            // 네이버 메일 답장 패턴도 확인
+            if (line.trim().startsWith("-----Original Message-----")) {
+                break;
+            }
+            reply.append(line).append("\n");
+        }
+
+        return reply.toString().trim();
+    }
+
 
     private String getTextFromMimeMultipart(MimeMultipart multipart) throws MessagingException, IOException {
         StringBuilder text = new StringBuilder();
